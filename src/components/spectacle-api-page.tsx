@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { Loader2, FileJson, Link, UploadCloud, X, Search, Download, BrainCircuit, Info } from 'lucide-react';
 import Papa from 'papaparse';
@@ -265,6 +265,11 @@ const ApiDetailTable = ({ endpoints, title }: { endpoints: ApiEndpoint[], title:
 
 const InputStep = ({ onProcess }: { onProcess: (content: string, source: 'url' | 'file') => void }) => {
   const [url, setUrl] = useState('');
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     if (acceptedFiles.length > 0) {
@@ -298,6 +303,10 @@ const InputStep = ({ onProcess }: { onProcess: (content: string, source: 'url' |
       onProcess('', 'url'); // This will trigger the error state
     }
   }, [url, onProcess]);
+
+  if (!isClient) {
+    return null;
+  }
 
   return (
     <div className="w-full max-w-4xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -449,3 +458,5 @@ export default function SpectacleApiPage() {
     </div>
   );
 }
+
+    
