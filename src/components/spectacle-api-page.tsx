@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { Loader2, FileJson, Link, UploadCloud, X, Search, Download, BrainCircuit, Info } from 'lucide-react';
+import { Loader2, FileJson, Link, UploadCloud, X, Search, Download, BrainCircuit, Info, ChevronDown, ChevronRight } from 'lucide-react';
 import Papa from 'papaparse';
 
 import { Button } from '@/components/ui/button';
@@ -15,10 +15,11 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { getBackendTechnology } from '@/app/actions';
 import { analyzeSpec } from '@/lib/parser';
-import type { AnalysisResult, ApiEndpoint, HttpMethod } from '@/lib/types';
+import type { AnalysisResult, ApiEndpoint, Controller, HttpMethod } from '@/lib/types';
 import Logo from './logo';
 import { MethodBadge } from './method-badge';
 import { Footer } from './footer';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collapsible';
 
 type Step = 'input' | 'loading' | 'analysis' | 'error';
 
@@ -30,12 +31,14 @@ const LoadingStep = ({ message }: { message: string }) => (
   </div>
 );
 
-const SummaryCards = ({ summary }: { summary: AnalysisResult['summary'] }) => {
+const SummaryCards = ({ summary, controllers }: { summary: AnalysisResult['summary'], controllers: Record<string, Controller> }) => {
   const methodOrder: HttpMethod[] = ['get', 'post', 'put', 'delete', 'patch'];
   const methodCounts = methodOrder.map(method => ({
     method,
     count: summary.methodCounts[method] || 0
   })).filter(item => item.count > 0);
+
+  const largestControllerEndpointCount = controllers[summary.largestController]?.endpointCount || 0;
 
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -63,7 +66,7 @@ const SummaryCards = ({ summary }: { summary: AnalysisResult['summary'] }) => {
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold truncate">{summary.largestController}</div>
-          <p className="text-xs text-muted-foreground">Controller with the most endpoints</p>
+          <p className="text-xs text-muted-foreground">{largestControllerEndpointCount} endpoints</p>
         </CardContent>
       </Card>
       <Card>
@@ -85,191 +88,226 @@ const SummaryCards = ({ summary }: { summary: AnalysisResult['summary'] }) => {
   );
 };
 
-const ApiDetailTable = ({ endpoints, title }: { endpoints: ApiEndpoint[], title: string }) => {
-  const [filter, setFilter] = useState('');
-  const [aiModalOpen, setAiModalOpen] = useState(false);
-  const [aiEndpoint, setAiEndpoint] = useState<ApiEndpoint | null>(null);
-  const [aiResult, setAiResult] = useState('');
-  const [isAiLoading, setIsAiLoading] = useState(false);
+const ControllerApiTable = ({ controllers, title }: { controllers: Record<string, Controller>, title: string }) => {
+    const [filter, setFilter] = useState('');
+    const [aiModalOpen, setAiModalOpen] = useState(false);
+    const [aiEndpoint, setAiEndpoint] = useState<ApiEndpoint | null>(null);
+    const [aiResult, setAiResult] = useState('');
+    const [isAiLoading, setIsAiLoading] = useState(false);
+    const [openController, setOpenController] = useState<string | null>(null);
 
-  const filteredEndpoints = useMemo(() => {
-    if (!filter) return endpoints;
-    return endpoints.filter(e =>
-      e.path.toLowerCase().includes(filter.toLowerCase()) ||
-      e.summary?.toLowerCase().includes(filter.toLowerCase()) ||
-      e.controller.toLowerCase().includes(filter.toLowerCase())
-    );
-  }, [endpoints, filter]);
+    const methodOrder: HttpMethod[] = ['get', 'post', 'put', 'delete', 'patch', 'options', 'head'];
 
-  const exportToCsv = () => {
-    const dataToExport = filteredEndpoints.map(e => ({
-      Controller: e.controller,
-      Endpoint: e.path,
-      Method: e.method.toUpperCase(),
-      Summary: e.summary,
-      'Path Params': e.parameters.path.map(p => p.name).join(', '),
-      'Query Params': e.parameters.query.map(p => p.name).join(', '),
-      'Header Params': e.parameters.header.map(p => p.name).join(', '),
-      'Required Fields': [...e.parameters.path, ...e.parameters.query, ...e.parameters.header]
-        .filter(p => p.required)
-        .map(p => p.name)
-        .join(', '),
-      'Request Body': e.requestBody ? 'Yes' : 'No',
-    }));
+    const filteredControllers = useMemo(() => {
+        if (!filter) return Object.values(controllers);
+        return Object.values(controllers)
+            .map(c => ({
+                ...c,
+                endpoints: c.endpoints.filter(e =>
+                    e.path.toLowerCase().includes(filter.toLowerCase()) ||
+                    (e.summary || '').toLowerCase().includes(filter.toLowerCase())
+                )
+            }))
+            .filter(c => c.endpoints.length > 0 || c.name.toLowerCase().includes(filter.toLowerCase()));
+    }, [controllers, filter]);
 
-    const csv = Papa.unparse(dataToExport);
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
-    link.setAttribute('download', `${title.replace(/\s+/g, '_')}_api_spec.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
-  
-  const handleIdentifyTech = useCallback(async (endpoint: ApiEndpoint) => {
-    setAiEndpoint(endpoint);
-    setAiModalOpen(true);
-    setIsAiLoading(true);
-    setAiResult('');
+    const exportToCsv = () => {
+        const dataToExport = Object.values(controllers).flatMap(c => 
+            c.endpoints.map(e => ({
+                Controller: c.name,
+                Endpoint: e.path,
+                Method: e.method.toUpperCase(),
+                Summary: e.summary,
+                'Path Params': e.parameters.path.map((p: any) => p.name).join(', '),
+                'Query Params': e.parameters.query.map((p: any) => p.name).join(', '),
+                'Header Params': e.parameters.header.map((p: any) => p.name).join(', '),
+                'Required Fields': [...e.parameters.path, ...e.parameters.query, ...e.parameters.header]
+                    .filter((p: any) => p.required)
+                    .map((p: any) => p.name)
+                    .join(', '),
+                'Request Body': e.requestBody ? 'Yes' : 'No',
+            }))
+        );
 
-    try {
-        const requestExample = endpoint.requestBody?.content?.['application/json']?.example || endpoint.requestBody?.content?.['*/*']?.example;
-        const responseExample = endpoint.responses?.['200']?.content?.['application/json']?.example || endpoint.responses?.['200']?.content?.['*/*']?.example;
+        const csv = Papa.unparse(dataToExport);
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', `${title.replace(/\s+/g, '_')}_api_spec.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
 
-        const result = await getBackendTechnology({
-            requestPayload: JSON.stringify(requestExample) || "No request payload example provided.",
-            responsePayload: JSON.stringify(responseExample) || "No response payload example provided."
-        });
-        setAiResult(result.backendTechnology);
-    } catch (error) {
-        setAiResult('An error occurred while analyzing the technology.');
-    } finally {
-        setIsAiLoading(false);
-    }
-  }, []);
+    const handleIdentifyTech = useCallback(async (endpoint: ApiEndpoint) => {
+        setAiEndpoint(endpoint);
+        setAiModalOpen(true);
+        setIsAiLoading(true);
+        setAiResult('');
 
-  return (
-    <Card>
-      <CardHeader>
-        <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className='flex-1'>
-            <CardTitle>API Endpoints</CardTitle>
-            <CardDescription>A detailed list of all API endpoints found in the specification.</CardDescription>
-          </div>
-          <div className="flex items-center gap-2 w-full md:w-auto">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search endpoints..."
-                value={filter}
-                onChange={e => setFilter(e.target.value)}
-                className="pl-10 w-full"
-              />
-            </div>
-            <Button variant="outline" onClick={exportToCsv} disabled={filteredEndpoints.length === 0}>
-              <Download className="mr-2 h-4 w-4" />
-              Export CSV
-            </Button>
-          </div>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <ScrollArea className="h-[500px] w-full">
-          <Table>
-            <TableHeader className="sticky top-0 bg-background">
-              <TableRow>
-                <TableHead className='w-[100px]'>Method</TableHead>
-                <TableHead>Endpoint</TableHead>
-                <TableHead>Controller</TableHead>
-                <TableHead>Summary</TableHead>
-                <TableHead className='text-center'>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredEndpoints.length > 0 ? (
-                filteredEndpoints.map(endpoint => (
-                  <TableRow key={endpoint.id}>
-                    <TableCell><MethodBadge method={endpoint.method} /></TableCell>
-                    <TableCell className="font-mono text-sm">{endpoint.path}</TableCell>
-                    <TableCell>{endpoint.controller}</TableCell>
-                    <TableCell className="max-w-xs truncate">{endpoint.summary || 'No summary'}</TableCell>
-                    <TableCell className='text-center'>
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button variant="ghost" size="icon" onClick={() => handleIdentifyTech(endpoint)}>
-                                <BrainCircuit className="h-4 w-4" />
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>Identify Backend Technology (AI)</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    </TableCell>
-                  </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={5} className="h-24 text-center">
-                    No results found.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </ScrollArea>
-      </CardContent>
-       <Dialog open={aiModalOpen} onOpenChange={setAiModalOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-                <BrainCircuit className="h-5 w-5 text-primary" />
-                Backend Technology Analysis
-            </DialogTitle>
-            <DialogDescription>
-              AI-powered analysis of the endpoint's potential backend technology based on example payloads.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="mt-4 space-y-4">
-            <div>
-              <h4 className="font-semibold">Endpoint</h4>
-              <div className="flex items-center gap-2 mt-1">
-                 {aiEndpoint && <MethodBadge method={aiEndpoint.method}/>}
-                 <p className="font-mono text-sm">{aiEndpoint?.path}</p>
-              </div>
-            </div>
-            <div>
-              <h4 className="font-semibold">Result</h4>
-              {isAiLoading ? (
-                <div className="flex items-center gap-2 mt-2">
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    <p>Analyzing...</p>
+        try {
+            const requestExample = endpoint.requestBody?.content?.['application/json']?.example || endpoint.requestBody?.content?.['*/*']?.example;
+            const responseExample = endpoint.responses?.['200']?.content?.['application/json']?.example || endpoint.responses?.['200']?.content?.['*/*']?.example;
+
+            const result = await getBackendTechnology({
+                requestPayload: JSON.stringify(requestExample) || "No request payload example provided.",
+                responsePayload: JSON.stringify(responseExample) || "No response payload example provided."
+            });
+            setAiResult(result.backendTechnology);
+        } catch (error) {
+            setAiResult('An error occurred while analyzing the technology.');
+        } finally {
+            setIsAiLoading(false);
+        }
+    }, []);
+
+    useEffect(() => {
+        if (filteredControllers.length > 0) {
+            setOpenController(filteredControllers[0].name);
+        } else {
+            setOpenController(null);
+        }
+    }, [filteredControllers]);
+
+    return (
+        <Card>
+            <CardHeader>
+                <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+                    <div className='flex-1'>
+                        <CardTitle>API Endpoints by Controller</CardTitle>
+                        <CardDescription>A detailed list of all API endpoints, grouped by controller.</CardDescription>
+                    </div>
+                    <div className="flex items-center gap-2 w-full md:w-auto">
+                        <div className="relative flex-1">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                            <Input
+                                placeholder="Search controllers or endpoints..."
+                                value={filter}
+                                onChange={e => setFilter(e.target.value)}
+                                className="pl-10 w-full"
+                            />
+                        </div>
+                        <Button variant="outline" onClick={exportToCsv} disabled={Object.keys(controllers).length === 0}>
+                            <Download className="mr-2 h-4 w-4" />
+                            Export CSV
+                        </Button>
+                    </div>
                 </div>
-              ) : (
-                <Card className="mt-2 bg-muted/50">
-                    <CardContent className="p-4">
-                        <p className="text-lg font-semibold font-headline text-accent">{aiResult}</p>
-                    </CardContent>
-                </Card>
-              )}
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-    </Card>
-  );
+            </CardHeader>
+            <CardContent>
+                <ScrollArea className="h-[600px] w-full pr-4">
+                     {filteredControllers.length > 0 ? (
+                        filteredControllers.map(controller => (
+                            <Collapsible
+                                key={controller.name}
+                                open={openController === controller.name}
+                                onOpenChange={() => setOpenController(openController === controller.name ? null : controller.name)}
+                                className="mb-2 border rounded-lg"
+                            >
+                                <CollapsibleTrigger className="w-full p-4 flex justify-between items-center bg-muted/50 hover:bg-muted/80 transition-colors rounded-t-lg">
+                                    <div className="flex items-center gap-4">
+                                        {openController === controller.name ? <ChevronDown className="h-5 w-5" /> : <ChevronRight className="h-5 w-5" />}
+                                        <h3 className="text-lg font-semibold">{controller.name}</h3>
+                                        <span className='text-sm text-muted-foreground font-mono'>({controller.endpointCount} endpoints)</span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        {methodOrder.map(method => (controller.methodCounts[method] > 0) && (
+                                            <div key={method} className="flex items-center gap-1">
+                                                <MethodBadge method={method} />
+                                                <span className="font-semibold text-sm">{controller.methodCounts[method]}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </CollapsibleTrigger>
+                                <CollapsibleContent>
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow>
+                                                <TableHead className='w-[100px]'>Method</TableHead>
+                                                <TableHead>Endpoint</TableHead>
+                                                <TableHead>Summary</TableHead>
+                                                <TableHead className='text-center'>Actions</TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {controller.endpoints.map(endpoint => (
+                                                <TableRow key={endpoint.id}>
+                                                    <TableCell><MethodBadge method={endpoint.method} /></TableCell>
+                                                    <TableCell className="font-mono text-sm">{endpoint.path}</TableCell>
+                                                    <TableCell className="max-w-xs truncate">{endpoint.summary || 'No summary'}</TableCell>
+                                                    <TableCell className='text-center'>
+                                                        <TooltipProvider>
+                                                            <Tooltip>
+                                                                <TooltipTrigger asChild>
+                                                                    <Button variant="ghost" size="icon" onClick={() => handleIdentifyTech(endpoint)}>
+                                                                        <BrainCircuit className="h-4 w-4" />
+                                                                    </Button>
+                                                                </TooltipTrigger>
+                                                                <TooltipContent>
+                                                                    <p>Identify Backend Technology (AI)</p>
+                                                                </TooltipContent>
+                                                            </Tooltip>
+                                                        </TooltipProvider>
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                </CollapsibleContent>
+                            </Collapsible>
+                        ))
+                    ) : (
+                        <div className="h-24 text-center flex items-center justify-center">
+                           No results found.
+                        </div>
+                    )}
+                </ScrollArea>
+            </CardContent>
+            <Dialog open={aiModalOpen} onOpenChange={setAiModalOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
+                            <BrainCircuit className="h-5 w-5 text-primary" />
+                            Backend Technology Analysis
+                        </DialogTitle>
+                        <DialogDescription>
+                            AI-powered analysis of the endpoint's potential backend technology based on example payloads.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="mt-4 space-y-4">
+                        <div>
+                            <h4 className="font-semibold">Endpoint</h4>
+                            <div className="flex items-center gap-2 mt-1">
+                                {aiEndpoint && <MethodBadge method={aiEndpoint.method} />}
+                                <p className="font-mono text-sm">{aiEndpoint?.path}</p>
+                            </div>
+                        </div>
+                        <div>
+                            <h4 className="font-semibold">Result</h4>
+                            {isAiLoading ? (
+                                <div className="flex items-center gap-2 mt-2">
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                    <p>Analyzing...</p>
+                                </div>
+                            ) : (
+                                <Card className="mt-2 bg-muted/50">
+                                    <CardContent className="p-4">
+                                        <p className="text-lg font-semibold font-headline text-accent">{aiResult}</p>
+                                    </CardContent>
+                                </Card>
+                            )}
+                        </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
+        </Card>
+    );
 };
+
 
 const InputStep = ({ onProcess }: { onProcess: (content: string, source: 'url' | 'file', error?: string) => void }) => {
   const [url, setUrl] = useState('');
-  const [isClient, setIsClient] = useState(false);
-
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     if (acceptedFiles.length > 0) {
@@ -301,15 +339,14 @@ const InputStep = ({ onProcess }: { onProcess: (content: string, source: 'url' |
       console.error("Failed to fetch from URL", e);
       let errorMessage = 'Failed to fetch from URL. This can happen due to network issues or CORS restrictions.';
       if (e.message.includes('Failed to fetch')) {
-        errorMessage += ' If the URL is correct, the server may not be configured to allow cross-origin requests. Try using a browser extension to bypass CORS for this site.';
+        errorMessage = 'Failed to fetch the spec from the provided URL. This is often due to CORS (Cross-Origin Resource Sharing) policies on the server. If this is not a public API, you may need to be on a VPN. Please try uploading the file directly.';
+      } else {
+        errorMessage = `An error occurred: ${e.message}. If this is not a public API, you may need to be on a VPN. Please try uploading the file directly.`
       }
-      onProcess('', 'url', e.message || errorMessage);
+      onProcess('', 'url', errorMessage);
     }
   }, [url, onProcess]);
 
-  if (!isClient) {
-    return null;
-  }
 
   return (
     <div className="w-full max-w-4xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -334,7 +371,7 @@ const InputStep = ({ onProcess }: { onProcess: (content: string, source: 'url' |
           <div className="mt-4 flex items-start gap-2 p-3 rounded-lg bg-primary/10 text-primary/80">
             <Info className="h-5 w-5 mt-0.5 shrink-0" />
             <p className="text-xs">
-              Fetching specs from a URL is subject to CORS. If you encounter issues, consider using a browser extension that can bypass CORS.
+              Fetching specs from a URL is subject to CORS. If you encounter issues, consider using the file upload method instead.
             </p>
           </div>
         </CardContent>
@@ -380,7 +417,7 @@ export default function SpectacleApiPage() {
 
   const handleProcess = useCallback(async (content: string, source: 'url' | 'file', error?: string) => {
     if (error) {
-        setState({ step: 'error', error: "Failed to fetch from URL. The resource may be unavailable, behind a VPN, or blocked by a CORS policy. Please check the URL and your connection, then try again." });
+        setState({ step: 'error', error });
         return;
     }
     if (!content && source === 'url') {
@@ -456,8 +493,8 @@ export default function SpectacleApiPage() {
               <h1 className="text-3xl font-bold font-headline">{state.analysis.specTitle}</h1>
               <p className="text-muted-foreground">Version: {state.analysis.specVersion}</p>
             </div>
-            <SummaryCards summary={state.analysis.summary} />
-            <ApiDetailTable endpoints={state.analysis.endpoints} title={state.analysis.specTitle} />
+            <SummaryCards summary={state.analysis.summary} controllers={state.analysis.controllers} />
+            <ControllerApiTable controllers={state.analysis.controllers} title={state.analysis.specTitle} />
           </div>
         )}
       </main>
@@ -465,3 +502,5 @@ export default function SpectacleApiPage() {
     </div>
   );
 }
+
+    
