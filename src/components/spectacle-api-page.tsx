@@ -52,30 +52,30 @@ const SummaryCards = ({ summary, controllers }: { summary: AnalysisResult['summa
           <p className="text-xs text-purple-700/80 dark:text-purple-300/80">Groups of related endpoints</p>
         </CardContent>
       </Card>
-      <Card className="bg-green-100/50 border-green-200/60 dark:bg-green-900/20 dark:border-green-800/40">
+      <Card className="bg-teal-100/50 border-teal-200/60 dark:bg-teal-900/20 dark:border-teal-800/40">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium text-green-600 dark:text-green-300">Total Endpoints</CardTitle>
-          <Component className="h-4 w-4 text-green-500 dark:text-green-400" />
+          <CardTitle className="text-sm font-medium text-teal-600 dark:text-teal-300">Total Endpoints</CardTitle>
+          <Component className="h-4 w-4 text-teal-500 dark:text-teal-400" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold text-green-800 dark:text-green-100">{summary.totalEndpoints}</div>
-          <p className="text-xs text-green-700/80 dark:text-green-300/80">Individual API operations</p>
+          <div className="text-2xl font-bold text-teal-800 dark:text-teal-100">{summary.totalEndpoints}</div>
+          <p className="text-xs text-teal-700/80 dark:text-teal-300/80">Individual API operations</p>
         </CardContent>
       </Card>
-      <Card className="bg-blue-100/50 border-blue-200/60 dark:bg-blue-900/20 dark:border-blue-800/40">
+      <Card className="bg-sky-100/50 border-sky-200/60 dark:bg-sky-900/20 dark:border-sky-800/40">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium text-blue-600 dark:text-blue-300">Largest Controller</CardTitle>
-          <Folder className="h-4 w-4 text-blue-500 dark:text-blue-400" />
+          <CardTitle className="text-sm font-medium text-sky-600 dark:text-sky-300">Largest Controller</CardTitle>
+          <Folder className="h-4 w-4 text-sky-500 dark:text-sky-400" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold truncate text-blue-800 dark:text-blue-100">{summary.largestController}</div>
-          <p className="text-xs text-blue-700/80 dark:text-blue-300/80">{largestControllerEndpointCount} endpoints</p>
+          <div className="text-2xl font-bold truncate text-sky-800 dark:text-sky-100">{summary.largestController}</div>
+          <p className="text-xs text-sky-700/80 dark:text-sky-300/80">{largestControllerEndpointCount} endpoints</p>
         </CardContent>
       </Card>
-      <Card className="bg-pink-100/50 border-pink-200/60 dark:bg-pink-900/20 dark:border-pink-800/40">
+      <Card className="bg-rose-100/50 border-rose-200/60 dark:bg-rose-900/20 dark:border-rose-800/40">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium text-pink-600 dark:text-pink-300">Endpoints by Method</CardTitle>
-          <Cuboid className="h-4 w-4 text-pink-500 dark:text-pink-400" />
+          <CardTitle className="text-sm font-medium text-rose-600 dark:text-rose-300">Endpoints by Method</CardTitle>
+          <Cuboid className="h-4 w-4 text-rose-500 dark:text-rose-400" />
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap gap-2 items-center pt-2">
@@ -507,7 +507,7 @@ export default function SpectacleApiPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-background text-foreground">
+    <div className="relative min-h-screen bg-background text-foreground">
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 p-4 backdrop-blur supports-[backdrop-filter]:bg-background/60 flex justify-between items-center">
         <Logo />
         {state.step === 'analysis' && (
@@ -518,7 +518,7 @@ export default function SpectacleApiPage() {
         )}
       </header>
 
-      <main className="flex-grow flex flex-col items-center justify-center p-4 md:p-8">
+      <main className="flex-grow flex flex-col items-center justify-center p-4 md:p-8 pb-24">
         {state.step === 'input' && (
           <div className='text-center mb-12'>
             <h1 className="text-4xl md:text-5xl font-bold font-headline">Visual API Specification Analyzer</h1>
@@ -574,5 +574,3 @@ export default function SpectacleApiPage() {
     </div>
   );
 }
-
-    
