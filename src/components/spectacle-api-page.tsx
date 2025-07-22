@@ -90,10 +90,6 @@ const SummaryCards = ({ summary, controllers }: { summary: AnalysisResult['summa
 
 const ControllerApiTable = ({ controllers, title }: { controllers: Record<string, Controller>, title: string }) => {
     const [filter, setFilter] = useState('');
-    const [aiModalOpen, setAiModalOpen] = useState(false);
-    const [aiEndpoint, setAiEndpoint] = useState<ApiEndpoint | null>(null);
-    const [aiResult, setAiResult] = useState('');
-    const [isAiLoading, setIsAiLoading] = useState(false);
     const [openController, setOpenController] = useState<string | null>(null);
 
     const methodOrder: HttpMethod[] = ['get', 'post', 'put', 'delete', 'patch', 'options', 'head'];
@@ -139,28 +135,6 @@ const ControllerApiTable = ({ controllers, title }: { controllers: Record<string
         link.click();
         document.body.removeChild(link);
     };
-
-    const handleIdentifyTech = useCallback(async (endpoint: ApiEndpoint) => {
-        setAiEndpoint(endpoint);
-        setAiModalOpen(true);
-        setIsAiLoading(true);
-        setAiResult('');
-
-        try {
-            const requestExample = endpoint.requestBody?.content?.['application/json']?.example || endpoint.requestBody?.content?.['*/*']?.example;
-            const responseExample = endpoint.responses?.['200']?.content?.['application/json']?.example || endpoint.responses?.['200']?.content?.['*/*']?.example;
-
-            const result = await getBackendTechnology({
-                requestPayload: JSON.stringify(requestExample) || "No request payload example provided.",
-                responsePayload: JSON.stringify(responseExample) || "No response payload example provided."
-            });
-            setAiResult(result.backendTechnology);
-        } catch (error) {
-            setAiResult('An error occurred while analyzing the technology.');
-        } finally {
-            setIsAiLoading(false);
-        }
-    }, []);
 
     useEffect(() => {
         if (filteredControllers.length > 0) {
@@ -224,32 +198,25 @@ const ControllerApiTable = ({ controllers, title }: { controllers: Record<string
                                     <Table>
                                         <TableHeader>
                                             <TableRow>
-                                                <TableHead className='w-[100px]'>Method</TableHead>
-                                                <TableHead>Endpoint</TableHead>
-                                                <TableHead>Summary</TableHead>
-                                                <TableHead className='text-center'>Actions</TableHead>
+                                                <TableHead className='w-[50px]'>No.</TableHead>
+                                                <TableHead>Endpoints</TableHead>
+                                                <TableHead>Endpoints Name</TableHead>
+                                                <TableHead>Method</TableHead>
+                                                <TableHead>Path Param</TableHead>
+                                                <TableHead>Query Param</TableHead>
+                                                <TableHead>Request Body</TableHead>
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
-                                            {controller.endpoints.map(endpoint => (
+                                            {controller.endpoints.map((endpoint, index) => (
                                                 <TableRow key={endpoint.id}>
-                                                    <TableCell><MethodBadge method={endpoint.method} /></TableCell>
+                                                    <TableCell>{index + 1}</TableCell>
                                                     <TableCell className="font-mono text-sm">{endpoint.path}</TableCell>
-                                                    <TableCell className="max-w-xs truncate">{endpoint.summary || 'No summary'}</TableCell>
-                                                    <TableCell className='text-center'>
-                                                        <TooltipProvider>
-                                                            <Tooltip>
-                                                                <TooltipTrigger asChild>
-                                                                    <Button variant="ghost" size="icon" onClick={() => handleIdentifyTech(endpoint)}>
-                                                                        <BrainCircuit className="h-4 w-4" />
-                                                                    </Button>
-                                                                </TooltipTrigger>
-                                                                <TooltipContent>
-                                                                    <p>Identify Backend Technology (AI)</p>
-                                                                </TooltipContent>
-                                                            </Tooltip>
-                                                        </TooltipProvider>
-                                                    </TableCell>
+                                                    <TableCell className="max-w-xs truncate">{endpoint.summary || 'N/A'}</TableCell>
+                                                    <TableCell><MethodBadge method={endpoint.method} /></TableCell>
+                                                    <TableCell>{endpoint.parameters.path.map(p => p.name).join(', ') || 'N/A'}</TableCell>
+                                                    <TableCell>{endpoint.parameters.query.map(p => p.name).join(', ') || 'N/A'}</TableCell>
+                                                    <TableCell>{endpoint.requestBody ? 'Yes' : 'No'}</TableCell>
                                                 </TableRow>
                                             ))}
                                         </TableBody>
@@ -264,43 +231,6 @@ const ControllerApiTable = ({ controllers, title }: { controllers: Record<string
                     )}
                 </ScrollArea>
             </CardContent>
-            <Dialog open={aiModalOpen} onOpenChange={setAiModalOpen}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle className="flex items-center gap-2">
-                            <BrainCircuit className="h-5 w-5 text-primary" />
-                            Backend Technology Analysis
-                        </DialogTitle>
-                        <DialogDescription>
-                            AI-powered analysis of the endpoint's potential backend technology based on example payloads.
-                        </DialogDescription>
-                    </DialogHeader>
-                    <div className="mt-4 space-y-4">
-                        <div>
-                            <h4 className="font-semibold">Endpoint</h4>
-                            <div className="flex items-center gap-2 mt-1">
-                                {aiEndpoint && <MethodBadge method={aiEndpoint.method} />}
-                                <p className="font-mono text-sm">{aiEndpoint?.path}</p>
-                            </div>
-                        </div>
-                        <div>
-                            <h4 className="font-semibold">Result</h4>
-                            {isAiLoading ? (
-                                <div className="flex items-center gap-2 mt-2">
-                                    <Loader2 className="h-4 w-4 animate-spin" />
-                                    <p>Analyzing...</p>
-                                </div>
-                            ) : (
-                                <Card className="mt-2 bg-muted/50">
-                                    <CardContent className="p-4">
-                                        <p className="text-lg font-semibold font-headline text-accent">{aiResult}</p>
-                                    </CardContent>
-                                </Card>
-                            )}
-                        </div>
-                    </div>
-                </DialogContent>
-            </Dialog>
         </Card>
     );
 };
@@ -308,6 +238,11 @@ const ControllerApiTable = ({ controllers, title }: { controllers: Record<string
 
 const InputStep = ({ onProcess }: { onProcess: (content: string, source: 'url' | 'file', error?: string) => void }) => {
   const [url, setUrl] = useState('');
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     if (acceptedFiles.length > 0) {
@@ -350,32 +285,34 @@ const InputStep = ({ onProcess }: { onProcess: (content: string, source: 'url' |
 
   return (
     <div className="w-full max-w-4xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8">
-      <Card className="flex flex-col">
-        <CardHeader>
-          <div className="flex items-center gap-3">
-            <Link className="h-6 w-6 text-primary" />
-            <CardTitle className="font-headline">Analyze from URL</CardTitle>
-          </div>
-          <CardDescription>Enter a URL to a raw Swagger/OpenAPI file.</CardDescription>
-        </CardHeader>
-        <CardContent className="flex-grow flex flex-col">
-          <div className="space-y-2">
-            <Input
-              type="url"
-              placeholder="https://petstore.swagger.io/v2/swagger.json"
-              value={url}
-              onChange={e => setUrl(e.target.value)}
-            />
-            <Button onClick={handleUrlFetch} className="w-full bg-accent hover:bg-accent/90">Analyze URL</Button>
-          </div>
-          <div className="mt-4 flex items-start gap-2 p-3 rounded-lg bg-primary/10 text-primary/80">
-            <Info className="h-5 w-5 mt-0.5 shrink-0" />
-            <p className="text-xs">
-              Fetching specs from a URL is subject to CORS. If you encounter issues, consider using the file upload method instead.
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+      {isClient && (
+        <Card className="flex flex-col">
+          <CardHeader>
+            <div className="flex items-center gap-3">
+              <Link className="h-6 w-6 text-primary" />
+              <CardTitle className="font-headline">Analyze from URL</CardTitle>
+            </div>
+            <CardDescription>Enter a URL to a raw Swagger/OpenAPI file.</CardDescription>
+          </CardHeader>
+          <CardContent className="flex-grow flex flex-col">
+            <div className="space-y-2">
+              <Input
+                type="url"
+                placeholder="https://petstore.swagger.io/v2/swagger.json"
+                value={url}
+                onChange={e => setUrl(e.target.value)}
+              />
+              <Button onClick={handleUrlFetch} className="w-full bg-accent hover:bg-accent/90">Analyze URL</Button>
+            </div>
+            <div className="mt-4 flex items-start gap-2 p-3 rounded-lg bg-primary/10 text-primary/80">
+              <Info className="h-5 w-5 mt-0.5 shrink-0" />
+              <p className="text-xs">
+                Fetching specs from a URL is subject to CORS. If you encounter issues, consider using the file upload method instead.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <Card className="flex flex-col">
         <CardHeader>
