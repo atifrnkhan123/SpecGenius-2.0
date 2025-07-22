@@ -42,27 +42,27 @@ const SummaryCards = ({ summary, controllers }: { summary: AnalysisResult['summa
 
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-      <Card>
+      <Card className="bg-primary/10 border-primary/20">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Total Controllers</CardTitle>
-          <Cuboid className="h-4 w-4 text-muted-foreground" />
+          <CardTitle className="text-sm font-medium text-primary-foreground">Total Controllers</CardTitle>
+          <Cuboid className="h-4 w-4 text-primary" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">{summary.totalControllers}</div>
-          <p className="text-xs text-muted-foreground">Groups of related endpoints</p>
+          <div className="text-2xl font-bold text-primary">{summary.totalControllers}</div>
+          <p className="text-xs text-primary/80">Groups of related endpoints</p>
         </CardContent>
       </Card>
-      <Card>
+      <Card className="bg-accent/10 border-accent/20">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Total Endpoints</CardTitle>
-          <Component className="h-4 w-4 text-muted-foreground" />
+          <CardTitle className="text-sm font-medium text-accent-foreground">Total Endpoints</CardTitle>
+          <Component className="h-4 w-4 text-accent" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">{summary.totalEndpoints}</div>
-          <p className="text-xs text-muted-foreground">Individual API operations</p>
+          <div className="text-2xl font-bold text-accent">{summary.totalEndpoints}</div>
+          <p className="text-xs text-accent/80">Individual API operations</p>
         </CardContent>
       </Card>
-      <Card>
+      <Card className="bg-secondary/50 border-secondary">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">Largest Controller</CardTitle>
           <Folder className="h-4 w-4 text-muted-foreground" />
