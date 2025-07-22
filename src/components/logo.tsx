@@ -16,8 +16,8 @@ const Logo = (props: React.SVGProps<SVGSVGElement>) => (
       fontWeight="bold"
       fill="hsl(var(--primary))"
     >
-      Spectacle
-      <tspan fill="hsl(var(--accent))">API</tspan>
+      Spec
+      <tspan fill="hsl(var(--accent))">Genius</tspan>
     </text>
   </svg>
 );

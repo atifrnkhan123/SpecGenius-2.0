@@ -3,7 +3,7 @@ import './globals.css';
 import { Toaster } from "@/components/ui/toaster"
 
 export const metadata: Metadata = {
-  title: 'SpectacleAPI',
+  title: 'SpecGenius',
   description: 'Visual API Specification Analyzer for Swagger/OpenAPI',
 };
 
