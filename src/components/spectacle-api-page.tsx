@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { Loader2, FileJson, Link, UploadCloud, X, Search, Download, Info, ChevronDown, ChevronRight } from 'lucide-react';
+import { Loader2, FileJson, Link, UploadCloud, X, Search, Download, Info, ChevronDown, ChevronRight, Folder } from 'lucide-react';
 import Papa from 'papaparse';
 
 import { Button } from '@/components/ui/button';
@@ -18,6 +18,7 @@ import Logo from './logo';
 import { MethodBadge } from './method-badge';
 import { Footer } from './footer';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collapsible';
+import { cn } from '@/lib/utils';
 
 type Step = 'input' | 'loading' | 'analysis' | 'error';
 
@@ -75,8 +76,7 @@ const SummaryCards = ({ summary, controllers }: { summary: AnalysisResult['summa
           <div className="flex flex-wrap gap-2 items-center">
             {methodCounts.map(({ method, count }) => (
               <div key={method} className="flex items-center gap-1">
-                <MethodBadge method={method} />
-                <span className="font-semibold">{count}</span>
+                <MethodBadge method={method}>{`${method.toUpperCase()}: ${count}`}</MethodBadge>
               </div>
             ))}
           </div>
@@ -173,7 +173,7 @@ const AllEndpointsTable = ({ endpoints, title }: { endpoints: ApiEndpoint[], tit
                     <TableCell>{endpoint.controller}</TableCell>
                     <TableCell className="font-mono text-sm">{endpoint.path}</TableCell>
                     <TableCell className="max-w-xs truncate">{endpoint.summary || 'N/A'}</TableCell>
-                    <TableCell><MethodBadge method={endpoint.method} /></TableCell>
+                    <TableCell><MethodBadge method={endpoint.method}>{endpoint.method.toUpperCase()}</MethodBadge></TableCell>
                     <TableCell>{endpoint.parameters.path.map(p => p.name).join(', ') || 'N/A'}</TableCell>
                     <TableCell>{endpoint.parameters.query.map(p => p.name).join(', ') || 'N/A'}</TableCell>
                     <TableCell>{endpoint.requestBody ? 'Yes' : 'No'}</TableCell>
@@ -278,64 +278,65 @@ const ControllerApiTable = ({ controllers, title }: { controllers: Record<string
             </CardHeader>
             <CardContent>
                 <ScrollArea className="h-[600px] w-full pr-4">
-                     {filteredControllers.length > 0 ? (
-                        filteredControllers.map(controller => (
-                            <Collapsible
-                                key={controller.name}
-                                open={openController === controller.name}
-                                onOpenChange={() => setOpenController(openController === controller.name ? null : controller.name)}
-                                className="mb-2 border rounded-lg"
-                            >
-                                <CollapsibleTrigger className="w-full p-4 flex justify-between items-center bg-muted/50 hover:bg-muted/80 transition-colors rounded-t-lg">
-                                    <div className="flex items-center gap-4">
-                                        {openController === controller.name ? <ChevronDown className="h-5 w-5" /> : <ChevronRight className="h-5 w-5" />}
-                                        <h3 className="text-lg font-semibold">{controller.name}</h3>
-                                        <span className='text-sm text-muted-foreground font-mono'>({controller.endpointCount} endpoints)</span>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        {methodOrder.map(method => (controller.methodCounts[method] > 0) && (
-                                            <div key={method} className="flex items-center gap-1">
-                                                <MethodBadge method={method} />
-                                                <span className="font-semibold text-sm">{controller.methodCounts[method]}</span>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </CollapsibleTrigger>
-                                <CollapsibleContent>
-                                    <Table>
-                                        <TableHeader>
-                                            <TableRow>
-                                                <TableHead className='w-[50px]'>No.</TableHead>
-                                                <TableHead>Endpoints</TableHead>
-                                                <TableHead>Endpoints Name</TableHead>
-                                                <TableHead>Method</TableHead>
-                                                <TableHead>Path Param</TableHead>
-                                                <TableHead>Query Param</TableHead>
-                                                <TableHead>Request Body</TableHead>
-                                            </TableRow>
-                                        </TableHeader>
-                                        <TableBody>
-                                            {controller.endpoints.map((endpoint, index) => (
-                                                <TableRow key={endpoint.id}>
-                                                    <TableCell>{index + 1}</TableCell>
-                                                    <TableCell className="font-mono text-sm">{endpoint.path}</TableCell>
-                                                    <TableCell className="max-w-xs truncate">{endpoint.summary || 'N/A'}</TableCell>
-                                                    <TableCell><MethodBadge method={endpoint.method} /></TableCell>
-                                                    <TableCell>{endpoint.parameters.path.map(p => p.name).join(', ') || 'N/A'}</TableCell>
-                                                    <TableCell>{endpoint.parameters.query.map(p => p.name).join(', ') || 'N/A'}</TableCell>
-                                                    <TableCell>{endpoint.requestBody ? 'Yes' : 'No'}</TableCell>
-                                                </TableRow>
+                     <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
+                        {filteredControllers.length > 0 ? (
+                            filteredControllers.map(controller => (
+                                <Collapsible
+                                    key={controller.name}
+                                    open={openController === controller.name}
+                                    onOpenChange={() => setOpenController(openController === controller.name ? null : controller.name)}
+                                    className="border rounded-lg"
+                                >
+                                    <CollapsibleTrigger className="w-full p-4 flex flex-col items-start gap-3 bg-card hover:bg-muted/50 transition-colors rounded-t-lg">
+                                        <div className="flex items-center gap-2 text-primary">
+                                            <Folder className="h-5 w-5" />
+                                            <h3 className="text-lg font-semibold">{controller.name}</h3>
+                                        </div>
+                                        <div className='text-3xl font-bold text-foreground'>
+                                            {controller.endpointCount} APIs
+                                        </div>
+                                        <div className="flex flex-wrap items-center gap-2">
+                                            {methodOrder.map(method => (controller.methodCounts[method] > 0) && (
+                                                <MethodBadge key={method} method={method}>{`${method.toUpperCase()}: ${controller.methodCounts[method]}`}</MethodBadge>
                                             ))}
-                                        </TableBody>
-                                    </Table>
-                                </CollapsibleContent>
-                            </Collapsible>
-                        ))
-                    ) : (
-                        <div className="h-24 text-center flex items-center justify-center">
-                           No results found.
-                        </div>
-                    )}
+                                        </div>
+                                    </CollapsibleTrigger>
+                                    <CollapsibleContent>
+                                        <Table>
+                                            <TableHeader>
+                                                <TableRow>
+                                                    <TableHead className='w-[50px]'>No.</TableHead>
+                                                    <TableHead>Endpoints</TableHead>
+                                                    <TableHead>Endpoints Name</TableHead>
+                                                    <TableHead>Method</TableHead>
+                                                    <TableHead>Path Param</TableHead>
+                                                    <TableHead>Query Param</TableHead>
+                                                    <TableHead>Request Body</TableHead>
+                                                </TableRow>
+                                            </TableHeader>
+                                            <TableBody>
+                                                {controller.endpoints.map((endpoint, index) => (
+                                                    <TableRow key={endpoint.id}>
+                                                        <TableCell>{index + 1}</TableCell>
+                                                        <TableCell className="font-mono text-sm">{endpoint.path}</TableCell>
+                                                        <TableCell className="max-w-xs truncate">{endpoint.summary || 'N/A'}</TableCell>
+                                                        <TableCell><MethodBadge method={endpoint.method}>{endpoint.method.toUpperCase()}</MethodBadge></TableCell>
+                                                        <TableCell>{endpoint.parameters.path.map(p => p.name).join(', ') || 'N/A'}</TableCell>
+                                                        <TableCell>{endpoint.parameters.query.map(p => p.name).join(', ') || 'N/A'}</TableCell>
+                                                        <TableCell>{endpoint.requestBody ? 'Yes' : 'No'}</TableCell>
+                                                    </TableRow>
+                                                ))}
+                                            </TableBody>
+                                        </Table>
+                                    </CollapsibleContent>
+                                </Collapsible>
+                            ))
+                        ) : (
+                            <div className="h-24 text-center flex items-center justify-center col-span-full">
+                               No results found.
+                            </div>
+                        )}
+                    </div>
                 </ScrollArea>
             </CardContent>
         </Card>
@@ -557,3 +558,5 @@ export default function SpectacleApiPage() {
     </div>
   );
 }
+
+    
