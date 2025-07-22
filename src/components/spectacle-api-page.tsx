@@ -19,6 +19,7 @@ import { MethodBadge } from './method-badge';
 import { Footer } from './footer';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collapsible';
 import { cn } from '@/lib/utils';
+import { getBackendTechnology } from '@/app/actions';
 
 type Step = 'input' | 'loading' | 'analysis' | 'error';
 
@@ -197,9 +198,21 @@ const AllEndpointsTable = ({ endpoints, title }: { endpoints: ApiEndpoint[], tit
 
 const ControllerApiTable = ({ controllers, title }: { controllers: Record<string, Controller>, title: string }) => {
     const [filter, setFilter] = useState('');
-    const [openController, setOpenController] = useState<string | null>(null);
+    const [openControllers, setOpenControllers] = useState<Set<string>>(new Set());
 
     const methodOrder: HttpMethod[] = ['get', 'post', 'put', 'delete', 'patch', 'options', 'head'];
+
+    const toggleController = (name: string) => {
+        setOpenControllers(prev => {
+            const newSet = new Set(prev);
+            if (newSet.has(name)) {
+                newSet.delete(name);
+            } else {
+                newSet.add(name);
+            }
+            return newSet;
+        });
+    };
 
     const filteredControllers = useMemo(() => {
         if (!filter) return Object.values(controllers);
@@ -215,7 +228,7 @@ const ControllerApiTable = ({ controllers, title }: { controllers: Record<string
     }, [controllers, filter]);
 
     const exportToCsv = () => {
-        const dataToExport = Object.values(controllers).flatMap(c => 
+        const dataToExport = Object.values(controllers).flatMap(c =>
             c.endpoints.map(e => ({
                 Controller: c.name,
                 Endpoint: e.path,
@@ -245,11 +258,12 @@ const ControllerApiTable = ({ controllers, title }: { controllers: Record<string
 
     useEffect(() => {
         if (filteredControllers.length > 0) {
-            setOpenController(filteredControllers[0].name);
+            setOpenControllers(new Set(filteredControllers.map(c => c.name)));
         } else {
-            setOpenController(null);
+            setOpenControllers(new Set());
         }
-    }, [filteredControllers]);
+    }, [filter, controllers]);
+
 
     return (
         <Card>
@@ -278,28 +292,33 @@ const ControllerApiTable = ({ controllers, title }: { controllers: Record<string
             </CardHeader>
             <CardContent>
                 <ScrollArea className="h-[600px] w-full pr-4">
-                     <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
+                     <div className='space-y-2'>
                         {filteredControllers.length > 0 ? (
                             filteredControllers.map(controller => (
                                 <Collapsible
                                     key={controller.name}
-                                    open={openController === controller.name}
-                                    onOpenChange={() => setOpenController(openController === controller.name ? null : controller.name)}
+                                    open={openControllers.has(controller.name)}
+                                    onOpenChange={() => toggleController(controller.name)}
                                     className="border rounded-lg"
                                 >
-                                    <CollapsibleTrigger className="w-full p-4 flex flex-col items-start gap-3 bg-card hover:bg-muted/50 transition-colors rounded-t-lg">
+                                    <CollapsibleTrigger className="w-full p-4 flex justify-between items-center bg-card hover:bg-muted/50 transition-colors rounded-t-lg">
+                                      <div className="flex items-center gap-4">
                                         <div className="flex items-center gap-2 text-primary">
-                                            <Folder className="h-5 w-5" />
-                                            <h3 className="text-lg font-semibold">{controller.name}</h3>
-                                        </div>
-                                        <div className='text-3xl font-bold text-foreground'>
-                                            {controller.endpointCount} APIs
+                                          <Folder className="h-5 w-5" />
+                                          <h3 className="text-lg font-semibold">{controller.name}</h3>
                                         </div>
                                         <div className="flex flex-wrap items-center gap-2">
                                             {methodOrder.map(method => (controller.methodCounts[method] > 0) && (
                                                 <MethodBadge key={method} method={method}>{`${method.toUpperCase()}: ${controller.methodCounts[method]}`}</MethodBadge>
                                             ))}
                                         </div>
+                                      </div>
+                                      <div className='flex items-center gap-2'>
+                                          <div className='text-sm font-semibold text-foreground'>
+                                              {controller.endpointCount} APIs
+                                          </div>
+                                          {openControllers.has(controller.name) ? <ChevronDown className="h-5 w-5" /> : <ChevronRight className="h-5 w-5" />}
+                                      </div>
                                     </CollapsibleTrigger>
                                     <CollapsibleContent>
                                         <Table>
@@ -346,12 +365,7 @@ const ControllerApiTable = ({ controllers, title }: { controllers: Record<string
 
 const InputStep = ({ onProcess }: { onProcess: (content: string, source: 'url' | 'file', error?: string) => void }) => {
   const [url, setUrl] = useState('');
-  const [isClient, setIsClient] = useState(false);
-
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
-
+  
   const onDrop = useCallback((acceptedFiles: File[]) => {
     if (acceptedFiles.length > 0) {
       const file = acceptedFiles[0];
@@ -393,34 +407,32 @@ const InputStep = ({ onProcess }: { onProcess: (content: string, source: 'url' |
 
   return (
     <div className="w-full max-w-4xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8">
-      {isClient && (
-        <Card className="flex flex-col">
-          <CardHeader>
-            <div className="flex items-center gap-3">
-              <Link className="h-6 w-6 text-primary" />
-              <CardTitle className="font-headline">Analyze from URL</CardTitle>
-            </div>
-            <CardDescription>Enter a URL to a raw Swagger/OpenAPI file.</CardDescription>
-          </CardHeader>
-          <CardContent className="flex-grow flex flex-col">
-            <div className="space-y-2">
-              <Input
-                type="url"
-                placeholder="https://petstore.swagger.io/v2/swagger.json"
-                value={url}
-                onChange={e => setUrl(e.target.value)}
-              />
-              <Button onClick={handleUrlFetch} className="w-full bg-accent hover:bg-accent/90">Analyze URL</Button>
-            </div>
-            <div className="mt-4 flex items-start gap-2 p-3 rounded-lg bg-primary/10 text-primary/80">
-              <Info className="h-5 w-5 mt-0.5 shrink-0" />
-              <p className="text-xs">
-                Fetching specs from a URL is subject to CORS. If you encounter issues, consider using the file upload method instead.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      <Card className="flex flex-col">
+        <CardHeader>
+          <div className="flex items-center gap-3">
+            <Link className="h-6 w-6 text-primary" />
+            <CardTitle className="font-headline">Analyze from URL</CardTitle>
+          </div>
+          <CardDescription>Enter a URL to a raw Swagger/OpenAPI file.</CardDescription>
+        </CardHeader>
+        <CardContent className="flex-grow flex flex-col">
+          <div className="space-y-2">
+            <Input
+              type="url"
+              placeholder="https://petstore.swagger.io/v2/swagger.json"
+              value={url}
+              onChange={e => setUrl(e.target.value)}
+            />
+            <Button onClick={handleUrlFetch} className="w-full bg-accent hover:bg-accent/90">Analyze URL</Button>
+          </div>
+          <div className="mt-4 flex items-start gap-2 p-3 rounded-lg bg-primary/10 text-primary/80">
+            <Info className="h-5 w-5 mt-0.5 shrink-0" />
+            <p className="text-xs">
+              If you encounter issues fetching from a URL, it might be due to CORS. Consider using the file upload method instead, especially for non-public APIs that may require a VPN connection.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
 
       <Card className="flex flex-col">
         <CardHeader>
@@ -558,5 +570,3 @@ export default function SpectacleApiPage() {
     </div>
   );
 }
-
-    

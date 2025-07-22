@@ -2,7 +2,7 @@ import { Separator } from "@/components/ui/separator";
 
 export function Footer() {
     return (
-        <footer className="w-full mt-auto py-8 px-4 md:px-6">
+        <footer className="w-full mt-auto py-8 px-4 md:px-6 shrink-0">
             <Separator className="mb-4" />
             <div className="text-center text-sm text-muted-foreground">
                 SpectacleAPI | All data is processed locally on your browser.
