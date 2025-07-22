@@ -44,7 +44,7 @@ const SummaryCards = ({ summary, controllers }: { summary: AnalysisResult['summa
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
       <Card className="bg-primary/10 border-primary/20">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium text-primary-foreground">Total Controllers</CardTitle>
+          <CardTitle className="text-sm font-medium text-primary">Total Controllers</CardTitle>
           <Cuboid className="h-4 w-4 text-primary" />
         </CardHeader>
         <CardContent>
@@ -62,20 +62,20 @@ const SummaryCards = ({ summary, controllers }: { summary: AnalysisResult['summa
           <p className="text-xs text-accent/80">Individual API operations</p>
         </CardContent>
       </Card>
-      <Card className="bg-secondary/50 border-secondary">
+      <Card className="bg-blue-500/10 border-blue-500/20">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Largest Controller</CardTitle>
-          <Folder className="h-4 w-4 text-muted-foreground" />
+          <CardTitle className="text-sm font-medium text-blue-500">Largest Controller</CardTitle>
+          <Folder className="h-4 w-4 text-blue-500" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold truncate">{summary.largestController}</div>
-          <p className="text-xs text-muted-foreground">{largestControllerEndpointCount} endpoints</p>
+          <div className="text-2xl font-bold truncate text-blue-500">{summary.largestController}</div>
+          <p className="text-xs text-blue-500/80">{largestControllerEndpointCount} endpoints</p>
         </CardContent>
       </Card>
-      <Card>
+      <Card className="bg-purple-500/10 border-purple-500/20">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Endpoints by Method</CardTitle>
-          <Cuboid className="h-4 w-4 text-muted-foreground" />
+          <CardTitle className="text-sm font-medium text-purple-500">Endpoints by Method</CardTitle>
+          <Cuboid className="h-4 w-4 text-purple-500" />
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap gap-2 items-center">
