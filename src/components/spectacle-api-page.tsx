@@ -263,7 +263,7 @@ const ApiDetailTable = ({ endpoints, title }: { endpoints: ApiEndpoint[], title:
   );
 };
 
-const InputStep = ({ onProcess }: { onProcess: (content: string, source: 'url' | 'file') => void }) => {
+const InputStep = ({ onProcess }: { onProcess: (content: string, source: 'url' | 'file', error?: string) => void }) => {
   const [url, setUrl] = useState('');
   const [isClient, setIsClient] = useState(false);
 
@@ -291,15 +291,16 @@ const InputStep = ({ onProcess }: { onProcess: (content: string, source: 'url' |
   const handleUrlFetch = useCallback(async () => {
     if (!url) return;
     try {
-      const response = await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`);
+      // Using a different proxy
+      const response = await fetch(`https://cors-anywhere.herokuapp.com/${url}`);
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw new Error(`HTTP error! status: ${response.status}. The service may be down or the URL may be incorrect.`);
       }
       const text = await response.text();
       onProcess(text, 'url');
-    } catch (e) {
+    } catch (e: any) {
       console.error("Failed to fetch from URL", e);
-      onProcess('', 'url'); // This will trigger the error state
+      onProcess('', 'url', e.message || 'Failed to fetch from URL. The CORS proxy may be down or experiencing issues.');
     }
   }, [url, onProcess]);
 
@@ -374,7 +375,11 @@ export default function SpectacleApiPage() {
     loadingMessage: '',
   });
 
-  const handleProcess = useCallback(async (content: string, source: 'url' | 'file') => {
+  const handleProcess = useCallback(async (content: string, source: 'url' | 'file', error?: string) => {
+    if (error) {
+        setState({ step: 'error', error });
+        return;
+    }
     if (!content && source === 'url') {
       setState({
           step: 'error',
@@ -457,3 +462,5 @@ export default function SpectacleApiPage() {
     </div>
   );
 }
+
+    
