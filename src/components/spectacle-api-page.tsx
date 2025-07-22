@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { Loader2, FileJson, Link, UploadCloud, X, Search, Download, BrainCircuit, Info, ChevronDown, ChevronRight } from 'lucide-react';
+import { Loader2, FileJson, Link, UploadCloud, X, Search, Download, Info, ChevronDown, ChevronRight } from 'lucide-react';
 import Papa from 'papaparse';
 
 import { Button } from '@/components/ui/button';
@@ -10,11 +10,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { getBackendTechnology } from '@/app/actions';
 import { analyzeSpec } from '@/lib/parser';
 import type { AnalysisResult, ApiEndpoint, Controller, HttpMethod } from '@/lib/types';
 import Logo from './logo';
