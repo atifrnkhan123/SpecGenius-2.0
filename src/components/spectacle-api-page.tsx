@@ -556,7 +556,7 @@ export default function SpectacleApiPage() {
             </div>
             <SummaryCards summary={state.analysis.summary} controllers={state.analysis.controllers} />
             <Tabs defaultValue="by-controller" className="w-full">
-              <TabsList className="grid w-full grid-cols-2 md:w-[400px]">
+              <TabsList className="grid w-full grid-cols-2 md:w-[400px] border">
                 <TabsTrigger value="by-controller">By Controller</TabsTrigger>
                 <TabsTrigger value="all-endpoints">All Endpoints</TabsTrigger>
               </TabsList>
@@ -574,3 +574,5 @@ export default function SpectacleApiPage() {
     </div>
   );
 }
+
+    
