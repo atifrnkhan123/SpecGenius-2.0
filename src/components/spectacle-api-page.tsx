@@ -13,6 +13,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { getBackendTechnology } from '@/app/actions';
 import { analyzeSpec } from '@/lib/parser';
 import type { AnalysisResult, ApiEndpoint, Controller, HttpMethod } from '@/lib/types';
@@ -87,6 +88,115 @@ const SummaryCards = ({ summary, controllers }: { summary: AnalysisResult['summa
     </div>
   );
 };
+
+const AllEndpointsTable = ({ endpoints, title }: { endpoints: ApiEndpoint[], title: string }) => {
+  const [filter, setFilter] = useState('');
+
+  const filteredEndpoints = useMemo(() => {
+    if (!filter) return endpoints;
+    return endpoints.filter(e =>
+      e.path.toLowerCase().includes(filter.toLowerCase()) ||
+      e.controller.toLowerCase().includes(filter.toLowerCase()) ||
+      (e.summary || '').toLowerCase().includes(filter.toLowerCase())
+    );
+  }, [endpoints, filter]);
+
+  const exportToCsv = () => {
+    const dataToExport = filteredEndpoints.map(e => ({
+      Controller: e.controller,
+      Endpoint: e.path,
+      Method: e.method.toUpperCase(),
+      Summary: e.summary,
+      'Path Params': e.parameters.path.map((p: any) => p.name).join(', '),
+      'Query Params': e.parameters.query.map((p: any) => p.name).join(', '),
+      'Header Params': e.parameters.header.map((p: any) => p.name).join(', '),
+      'Required Fields': [...e.parameters.path, ...e.parameters.query, ...e.parameters.header]
+        .filter((p: any) => p.required)
+        .map((p: any) => p.name)
+        .join(', '),
+      'Request Body': e.requestBody ? 'Yes' : 'No',
+    }));
+
+    const csv = Papa.unparse(dataToExport);
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `${title.replace(/\s+/g, '_')}_all_endpoints.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className='flex-1'>
+            <CardTitle>All API Endpoints</CardTitle>
+            <CardDescription>A detailed list of all API endpoints in the specification.</CardDescription>
+          </div>
+          <div className="flex items-center gap-2 w-full md:w-auto">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search endpoints..."
+                value={filter}
+                onChange={e => setFilter(e.target.value)}
+                className="pl-10 w-full"
+              />
+            </div>
+            <Button variant="outline" onClick={exportToCsv} disabled={endpoints.length === 0}>
+              <Download className="mr-2 h-4 w-4" />
+              Export CSV
+            </Button>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <ScrollArea className="h-[600px] w-full pr-4">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className='w-[50px]'>No.</TableHead>
+                <TableHead>Controller</TableHead>
+                <TableHead>Endpoints</TableHead>
+                <TableHead>Endpoints Name</TableHead>
+                <TableHead>Method</TableHead>
+                <TableHead>Path Param</TableHead>
+                <TableHead>Query Param</TableHead>
+                <TableHead>Request Body</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredEndpoints.length > 0 ? (
+                filteredEndpoints.map((endpoint, index) => (
+                  <TableRow key={endpoint.id}>
+                    <TableCell>{index + 1}</TableCell>
+                    <TableCell>{endpoint.controller}</TableCell>
+                    <TableCell className="font-mono text-sm">{endpoint.path}</TableCell>
+                    <TableCell className="max-w-xs truncate">{endpoint.summary || 'N/A'}</TableCell>
+                    <TableCell><MethodBadge method={endpoint.method} /></TableCell>
+                    <TableCell>{endpoint.parameters.path.map(p => p.name).join(', ') || 'N/A'}</TableCell>
+                    <TableCell>{endpoint.parameters.query.map(p => p.name).join(', ') || 'N/A'}</TableCell>
+                    <TableCell>{endpoint.requestBody ? 'Yes' : 'No'}</TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={8} className="h-24 text-center">
+                    No results found.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </ScrollArea>
+      </CardContent>
+    </Card>
+  );
+};
+
 
 const ControllerApiTable = ({ controllers, title }: { controllers: Record<string, Controller>, title: string }) => {
     const [filter, setFilter] = useState('');
@@ -431,7 +541,18 @@ export default function SpectacleApiPage() {
               <p className="text-muted-foreground">Version: {state.analysis.specVersion}</p>
             </div>
             <SummaryCards summary={state.analysis.summary} controllers={state.analysis.controllers} />
-            <ControllerApiTable controllers={state.analysis.controllers} title={state.analysis.specTitle} />
+            <Tabs defaultValue="by-controller" className="w-full">
+              <TabsList className="grid w-full grid-cols-2 md:w-[400px]">
+                <TabsTrigger value="by-controller">By Controller</TabsTrigger>
+                <TabsTrigger value="all-endpoints">All Endpoints</TabsTrigger>
+              </TabsList>
+              <TabsContent value="by-controller">
+                <ControllerApiTable controllers={state.analysis.controllers} title={state.analysis.specTitle} />
+              </TabsContent>
+              <TabsContent value="all-endpoints">
+                <AllEndpointsTable endpoints={state.analysis.endpoints} title={state.analysis.specTitle} />
+              </TabsContent>
+            </Tabs>
           </div>
         )}
       </main>
@@ -439,5 +560,3 @@ export default function SpectacleApiPage() {
     </div>
   );
 }
-
-    
