@@ -42,43 +42,43 @@ const SummaryCards = ({ summary, controllers }: { summary: AnalysisResult['summa
 
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-      <Card className="bg-primary/10 border-primary/20">
+      <Card className="bg-purple-100/50 border-purple-200/60 dark:bg-purple-900/20 dark:border-purple-800/40">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium text-primary">Total Controllers</CardTitle>
-          <Cuboid className="h-4 w-4 text-primary" />
+          <CardTitle className="text-sm font-medium text-purple-600 dark:text-purple-300">Total Controllers</CardTitle>
+          <Cuboid className="h-4 w-4 text-purple-500 dark:text-purple-400" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold text-primary">{summary.totalControllers}</div>
-          <p className="text-xs text-primary/80">Groups of related endpoints</p>
+          <div className="text-2xl font-bold text-purple-800 dark:text-purple-100">{summary.totalControllers}</div>
+          <p className="text-xs text-purple-700/80 dark:text-purple-300/80">Groups of related endpoints</p>
         </CardContent>
       </Card>
-      <Card className="bg-accent/10 border-accent/20">
+      <Card className="bg-green-100/50 border-green-200/60 dark:bg-green-900/20 dark:border-green-800/40">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium text-accent-foreground">Total Endpoints</CardTitle>
-          <Component className="h-4 w-4 text-accent" />
+          <CardTitle className="text-sm font-medium text-green-600 dark:text-green-300">Total Endpoints</CardTitle>
+          <Component className="h-4 w-4 text-green-500 dark:text-green-400" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold text-accent">{summary.totalEndpoints}</div>
-          <p className="text-xs text-accent/80">Individual API operations</p>
+          <div className="text-2xl font-bold text-green-800 dark:text-green-100">{summary.totalEndpoints}</div>
+          <p className="text-xs text-green-700/80 dark:text-green-300/80">Individual API operations</p>
         </CardContent>
       </Card>
-      <Card className="bg-blue-500/10 border-blue-500/20">
+      <Card className="bg-blue-100/50 border-blue-200/60 dark:bg-blue-900/20 dark:border-blue-800/40">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium text-blue-500">Largest Controller</CardTitle>
-          <Folder className="h-4 w-4 text-blue-500" />
+          <CardTitle className="text-sm font-medium text-blue-600 dark:text-blue-300">Largest Controller</CardTitle>
+          <Folder className="h-4 w-4 text-blue-500 dark:text-blue-400" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold truncate text-blue-500">{summary.largestController}</div>
-          <p className="text-xs text-blue-500/80">{largestControllerEndpointCount} endpoints</p>
+          <div className="text-2xl font-bold truncate text-blue-800 dark:text-blue-100">{summary.largestController}</div>
+          <p className="text-xs text-blue-700/80 dark:text-blue-300/80">{largestControllerEndpointCount} endpoints</p>
         </CardContent>
       </Card>
-      <Card className="bg-purple-500/10 border-purple-500/20">
+      <Card className="bg-pink-100/50 border-pink-200/60 dark:bg-pink-900/20 dark:border-pink-800/40">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium text-purple-500">Endpoints by Method</CardTitle>
-          <Cuboid className="h-4 w-4 text-purple-500" />
+          <CardTitle className="text-sm font-medium text-pink-600 dark:text-pink-300">Endpoints by Method</CardTitle>
+          <Cuboid className="h-4 w-4 text-pink-500 dark:text-pink-400" />
         </CardHeader>
         <CardContent>
-          <div className="flex flex-wrap gap-2 items-center">
+          <div className="flex flex-wrap gap-2 items-center pt-2">
             {methodCounts.map(({ method, count }) => (
               <div key={method} className="flex items-center gap-1">
                 <MethodBadge method={method}>{`${method.toUpperCase()}: ${count}`}</MethodBadge>
