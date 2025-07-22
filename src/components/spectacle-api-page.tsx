@@ -291,15 +291,19 @@ const InputStep = ({ onProcess }: { onProcess: (content: string, source: 'url' |
   const handleUrlFetch = useCallback(async () => {
     if (!url) return;
     try {
-      const response = await fetch(`https://cors-anywhere.herokuapp.com/${url}`);
+      const response = await fetch(url);
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}. The service may be down or the URL may be incorrect.`);
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
       const text = await response.text();
       onProcess(text, 'url');
     } catch (e: any) {
       console.error("Failed to fetch from URL", e);
-      onProcess('', 'url', e.message || 'Failed to fetch from URL. The CORS proxy may be down or experiencing issues.');
+      let errorMessage = 'Failed to fetch from URL. This can happen due to network issues or CORS restrictions.';
+      if (e.message.includes('Failed to fetch')) {
+        errorMessage += ' If the URL is correct, the server may not be configured to allow cross-origin requests. Try using a browser extension to bypass CORS for this site.';
+      }
+      onProcess('', 'url', e.message || errorMessage);
     }
   }, [url, onProcess]);
 
@@ -330,7 +334,7 @@ const InputStep = ({ onProcess }: { onProcess: (content: string, source: 'url' |
           <div className="mt-4 flex items-start gap-2 p-3 rounded-lg bg-primary/10 text-primary/80">
             <Info className="h-5 w-5 mt-0.5 shrink-0" />
             <p className="text-xs">
-              Some spec URLs may require a VPN. Ensure you are connected before analyzing. We use a CORS proxy for fetching.
+              Fetching specs from a URL is subject to CORS. If you encounter issues, consider using a browser extension that can bypass CORS.
             </p>
           </div>
         </CardContent>
