@@ -283,10 +283,9 @@ const InputStep = ({ onProcess }: { onProcess: (content: string, source: 'url' |
     maxFiles: 1,
   });
 
-  const handleUrlFetch = async () => {
+  const handleUrlFetch = useCallback(async () => {
     if (!url) return;
     try {
-      // Using a CORS proxy for browser-side fetching
       const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
       const response = await fetch(proxyUrl + url);
       if (!response.ok) {
@@ -295,9 +294,10 @@ const InputStep = ({ onProcess }: { onProcess: (content: string, source: 'url' |
       const text = await response.text();
       onProcess(text, 'url');
     } catch (e) {
+      console.error("Failed to fetch from URL", e);
       onProcess('', 'url'); // This will trigger the error state
     }
-  };
+  }, [url, onProcess]);
 
   return (
     <div className="w-full max-w-4xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8">
