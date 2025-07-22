@@ -291,7 +291,6 @@ const InputStep = ({ onProcess }: { onProcess: (content: string, source: 'url' |
   const handleUrlFetch = useCallback(async () => {
     if (!url) return;
     try {
-      // Using a different proxy
       const response = await fetch(`https://cors-anywhere.herokuapp.com/${url}`);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}. The service may be down or the URL may be incorrect.`);
@@ -377,7 +376,7 @@ export default function SpectacleApiPage() {
 
   const handleProcess = useCallback(async (content: string, source: 'url' | 'file', error?: string) => {
     if (error) {
-        setState({ step: 'error', error });
+        setState({ step: 'error', error: "Failed to fetch from URL. The resource may be unavailable, behind a VPN, or blocked by a CORS policy. Please check the URL and your connection, then try again." });
         return;
     }
     if (!content && source === 'url') {
@@ -462,5 +461,3 @@ export default function SpectacleApiPage() {
     </div>
   );
 }
-
-    
