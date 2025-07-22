@@ -291,8 +291,7 @@ const InputStep = ({ onProcess }: { onProcess: (content: string, source: 'url' |
   const handleUrlFetch = useCallback(async () => {
     if (!url) return;
     try {
-      const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
-      const response = await fetch(proxyUrl + url);
+      const response = await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -458,5 +457,3 @@ export default function SpectacleApiPage() {
     </div>
   );
 }
-
-    
