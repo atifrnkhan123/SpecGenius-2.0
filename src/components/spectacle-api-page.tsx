@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { Loader2, FileJson, Link, UploadCloud, X, Search, Download, Info, ChevronDown, ChevronRight, Folder } from 'lucide-react';
+import { Loader2, FileJson, Link, UploadCloud, X, Search, Download, Info, ChevronDown, ChevronRight, Folder, Cuboid, Component } from 'lucide-react';
 import Papa from 'papaparse';
 
 import { Button } from '@/components/ui/button';
@@ -32,7 +32,7 @@ const LoadingStep = ({ message }: { message: string }) => (
 );
 
 const SummaryCards = ({ summary, controllers }: { summary: AnalysisResult['summary'], controllers: Record<string, Controller> }) => {
-  const methodOrder: HttpMethod[] = ['get', 'post', 'put', 'delete', 'patch'];
+  const methodOrder: HttpMethod[] = ['get', 'post', 'put', 'delete', 'patch', 'options', 'head'];
   const methodCounts = methodOrder.map(method => ({
     method,
     count: summary.methodCounts[method] || 0
@@ -45,6 +45,7 @@ const SummaryCards = ({ summary, controllers }: { summary: AnalysisResult['summa
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">Total Controllers</CardTitle>
+          <Cuboid className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">{summary.totalControllers}</div>
@@ -54,6 +55,7 @@ const SummaryCards = ({ summary, controllers }: { summary: AnalysisResult['summa
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">Total Endpoints</CardTitle>
+          <Component className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">{summary.totalEndpoints}</div>
@@ -63,6 +65,7 @@ const SummaryCards = ({ summary, controllers }: { summary: AnalysisResult['summa
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">Largest Controller</CardTitle>
+          <Folder className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold truncate">{summary.largestController}</div>
@@ -72,6 +75,7 @@ const SummaryCards = ({ summary, controllers }: { summary: AnalysisResult['summa
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">Endpoints by Method</CardTitle>
+          <Cuboid className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap gap-2 items-center">
@@ -386,6 +390,7 @@ const InputStep = ({ onProcess }: { onProcess: (content: string, source: 'url' |
   const handleUrlFetch = useCallback(async () => {
     if (!url) return;
     try {
+      // Direct fetch, relying on browser CORS handling
       const response = await fetch(url);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
