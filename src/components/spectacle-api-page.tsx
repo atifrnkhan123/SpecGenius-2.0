@@ -390,7 +390,6 @@ const InputStep = ({ onProcess }: { onProcess: (content: string, source: 'url' |
   const handleUrlFetch = useCallback(async () => {
     if (!url) return;
     try {
-      // Direct fetch, relying on browser CORS handling
       const response = await fetch(url);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -509,7 +508,7 @@ export default function SpectacleApiPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground">
-      <header className="p-4 flex justify-between items-center">
+      <header className="sticky top-0 z-50 w-full border-b bg-background/95 p-4 backdrop-blur supports-[backdrop-filter]:bg-background/60 flex justify-between items-center">
         <Logo />
         {state.step === 'analysis' && (
           <Button variant="ghost" onClick={handleClear}>
