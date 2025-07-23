@@ -155,8 +155,7 @@ const AllEndpointsTable = ({ endpoints, title }: { endpoints: ApiEndpoint[], tit
           </div>
         </div>
       </CardHeader>
-      <CardContent className="overflow-x-auto">
-        <ScrollArea className="h-[600px] w-full pr-4">
+      <CardContent className="overflow-auto" style={{maxHeight: '600px'}}>
           <Table>
             <TableHeader>
               <TableRow>
@@ -193,7 +192,6 @@ const AllEndpointsTable = ({ endpoints, title }: { endpoints: ApiEndpoint[], tit
               )}
             </TableBody>
           </Table>
-        </ScrollArea>
       </CardContent>
     </Card>
   );
@@ -582,3 +580,5 @@ export default function SpectacleApiPage() {
     </div>
   );
 }
+
+    
