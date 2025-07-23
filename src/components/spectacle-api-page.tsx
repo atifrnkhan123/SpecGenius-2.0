@@ -112,7 +112,7 @@ const AllEndpointsTable = ({ endpoints, title }: { endpoints: ApiEndpoint[], tit
       'Path Params': e.parameters.path.map((p: any) => `${p.name}${p.required ? '*' : ''}`).join(', '),
       'Query Params': e.parameters.query.map((p: any) => `${p.name}${p.required ? '*' : ''}`).join(', '),
       'Header Params': e.parameters.header.map((p: any) => p.name).join(', '),
-      'Required Fields': [...e.parameters.path, ...e.parameters.query, ...e.parameters.header]
+      'Required Fields': [...e.parameters.path, ...e.parameters.query]
         .filter((p: any) => p.required)
         .map((p: any) => p.name)
         .join(', '),
@@ -239,7 +239,7 @@ const ControllerApiTable = ({ controllers, title }: { controllers: Record<string
                 'Path Params': e.parameters.path.map((p: any) => `${p.name}${p.required ? '*' : ''}`).join(', '),
                 'Query Params': e.parameters.query.map((p: any) => `${p.name}${p.required ? '*' : ''}`).join(', '),
                 'Header Params': e.parameters.header.map((p: any) => p.name).join(', '),
-                'Required Fields': [...e.parameters.path, ...e.parameters.query, ...e.parameters.header]
+                'Required Fields': [...e.parameters.path, ...e.parameters.query]
                     .filter((p: any) => p.required)
                     .map((p: any) => p.name)
                     .join(', '),
@@ -484,13 +484,14 @@ export default function SpectacleApiPage() {
 
   const handleProcess = useCallback(async (content: string, source: 'url' | 'file', error?: string) => {
     if (error) {
-        setState({ step: 'error', error });
+        setState({ step: 'error', error: error, loadingMessage: '' });
         return;
     }
     if (!content && (source === 'url' || source ==='file')) {
       setState({
           step: 'error',
-          error: "No content to process. Please check the URL or file."
+          error: "No content to process. Please check the URL or file.",
+          loadingMessage: ''
       });
       return;
     }
@@ -504,7 +505,7 @@ export default function SpectacleApiPage() {
         setState({ step: 'analysis', analysis: analysisResult, loadingMessage: '' });
       }, 500);
     } catch (e: any) {
-      setState({ step: 'error', error: e.message || 'An unknown error occurred during parsing.' });
+      setState({ step: 'error', error: e.message || 'An unknown error occurred during parsing.', loadingMessage: '' });
     }
   }, []);
 
