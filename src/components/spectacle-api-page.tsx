@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { Loader2, FileJson, Link, UploadCloud, X, Search, Download, Info, ChevronDown, ChevronRight, Folder, Cuboid, Component } from 'lucide-react';
+import { Loader2, FileJson, Link, UploadCloud, X, Search, Download, Info, ChevronDown, ChevronRight, Folder, Cuboid, Component, FileDown } from 'lucide-react';
 import Papa from 'papaparse';
 
 import { Button } from '@/components/ui/button';
@@ -155,7 +155,8 @@ const AllEndpointsTable = ({ endpoints, title }: { endpoints: ApiEndpoint[], tit
           </div>
         </div>
       </CardHeader>
-      <CardContent className="overflow-auto" style={{maxHeight: '600px'}}>
+      <CardContent className="overflow-auto">
+        <div className="overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
@@ -192,6 +193,7 @@ const AllEndpointsTable = ({ endpoints, title }: { endpoints: ApiEndpoint[], tit
               )}
             </TableBody>
           </Table>
+        </div>
       </CardContent>
     </Card>
   );
@@ -477,10 +479,12 @@ export default function SpectacleApiPage() {
     loadingMessage: string;
     analysis?: AnalysisResult;
     error?: string;
+    specContent?: string;
   }>({
     step: 'input',
     loadingMessage: '',
   });
+  const [isGenerating, setIsGenerating] = useState(false);
 
   const handleProcess = useCallback(async (content: string, source: 'url' | 'file', error?: string) => {
     if (error) {
@@ -502,7 +506,7 @@ export default function SpectacleApiPage() {
       setState(prevState => ({ ...prevState, loadingMessage: 'Building dashboard...' }));
       // a short delay for UX
       setTimeout(() => {
-        setState({ step: 'analysis', analysis: analysisResult, loadingMessage: '' });
+        setState({ step: 'analysis', analysis: analysisResult, specContent: content, loadingMessage: '' });
       }, 500);
     } catch (e: any) {
       setState({ step: 'error', error: e.message || 'An unknown error occurred during parsing.', loadingMessage: '' });
@@ -510,7 +514,28 @@ export default function SpectacleApiPage() {
   }, []);
 
   const handleClear = () => {
-    setState({ step: 'input', loadingMessage: '', analysis: undefined, error: undefined });
+    setState({ step: 'input', loadingMessage: '', analysis: undefined, error: undefined, specContent: undefined });
+  };
+
+  const handleGeneratePostman = () => {
+    if (!state.specContent || !state.analysis) return;
+    setIsGenerating(true);
+    setTimeout(() => {
+      try {
+        const blob = new Blob([state.specContent!], { type: 'application/json;charset=utf-8;' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', `${state.analysis!.specTitle.replace(/\s+/g, '_')}_postman_collection.json`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      } catch (error) {
+        console.error("Error generating Postman collection:", error);
+      } finally {
+        setIsGenerating(false);
+      }
+    }, 1500);
   };
 
   return (
@@ -557,9 +582,24 @@ export default function SpectacleApiPage() {
 
         {state.step === 'analysis' && state.analysis && (
           <div className="w-full max-w-7xl mx-auto space-y-8">
-            <div>
-              <h1 className="text-3xl font-bold font-headline">{state.analysis.specTitle}</h1>
-              <p className="text-muted-foreground">Version: {state.analysis.specVersion}</p>
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <div>
+                <h1 className="text-3xl font-bold font-headline">{state.analysis.specTitle}</h1>
+                <p className="text-muted-foreground">Version: {state.analysis.specVersion}</p>
+              </div>
+              <Button onClick={handleGeneratePostman} disabled={isGenerating} className="bg-accent hover:bg-accent/90">
+                {isGenerating ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Generating postman collection.....
+                  </>
+                ) : (
+                  <>
+                    <FileDown className="mr-2 h-4 w-4" />
+                    Generate Postman Collection
+                  </>
+                )}
+              </Button>
             </div>
             <SummaryCards summary={state.analysis.summary} controllers={state.analysis.controllers} />
             <Tabs defaultValue="by-controller" className="w-full">
