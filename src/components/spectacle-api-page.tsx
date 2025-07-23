@@ -19,7 +19,7 @@ import { MethodBadge } from './method-badge';
 import { Footer } from './footer';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collapsible';
 import { cn } from '@/lib/utils';
-import { getBackendTechnology } from '@/app/actions';
+import { getBackendTechnology, fetchSpecFromUrl } from '@/app/actions';
 
 type Step = 'input' | 'loading' | 'analysis' | 'error';
 
@@ -390,21 +390,15 @@ const InputStep = ({ onProcess }: { onProcess: (content: string, source: 'url' |
   const handleUrlFetch = useCallback(async () => {
     if (!url) return;
     try {
-      const response = await fetch(url);
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+      const result = await fetchSpecFromUrl(url);
+      if (result.error) {
+        onProcess('', 'url', result.error);
+      } else {
+        onProcess(result.content, 'url');
       }
-      const text = await response.text();
-      onProcess(text, 'url');
     } catch (e: any) {
       console.error("Failed to fetch from URL", e);
-      let errorMessage = 'Failed to fetch from URL. This can happen due to network issues or CORS restrictions.';
-      if (e.message.includes('Failed to fetch')) {
-        errorMessage = 'Failed to fetch the spec from the provided URL. This is often due to CORS (Cross-Origin Resource Sharing) policies on the server. If this is not a public API, you may need to be on a VPN. Please try uploading the file directly.';
-      } else {
-        errorMessage = `An error occurred: ${e.message}. If this is not a public API, you may need to be on a VPN. Please try uploading the file directly.`
-      }
-      onProcess('', 'url', errorMessage);
+      onProcess('', 'url', 'An unexpected error occurred while fetching the URL.');
     }
   }, [url, onProcess]);
 
@@ -481,10 +475,10 @@ export default function SpectacleApiPage() {
         setState({ step: 'error', error });
         return;
     }
-    if (!content && source === 'url') {
+    if (!content && (source === 'url' || source ==='file')) {
       setState({
           step: 'error',
-          error: "Failed to fetch from URL. The resource may be unavailable, behind a VPN, or blocked by CORS policy. Please check the URL and your connection, then try again."
+          error: "No content to process. Please check the URL or file."
       });
       return;
     }
