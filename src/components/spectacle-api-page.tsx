@@ -109,8 +109,8 @@ const AllEndpointsTable = ({ endpoints, title }: { endpoints: ApiEndpoint[], tit
       Endpoint: e.path,
       Method: e.method.toUpperCase(),
       Summary: e.summary,
-      'Path Params': e.parameters.path.map((p: any) => p.name).join(', '),
-      'Query Params': e.parameters.query.map((p: any) => p.name).join(', '),
+      'Path Params': e.parameters.path.map((p: any) => `${p.name}${p.required ? '*' : ''}`).join(', '),
+      'Query Params': e.parameters.query.map((p: any) => `${p.name}${p.required ? '*' : ''}`).join(', '),
       'Header Params': e.parameters.header.map((p: any) => p.name).join(', '),
       'Required Fields': [...e.parameters.path, ...e.parameters.query, ...e.parameters.header]
         .filter((p: any) => p.required)
@@ -178,8 +178,8 @@ const AllEndpointsTable = ({ endpoints, title }: { endpoints: ApiEndpoint[], tit
                     <TableCell className="font-mono text-sm">{endpoint.path}</TableCell>
                     <TableCell className="max-w-xs truncate">{endpoint.summary || 'N/A'}</TableCell>
                     <TableCell><MethodBadge method={endpoint.method}>{endpoint.method.toUpperCase()}</MethodBadge></TableCell>
-                    <TableCell>{endpoint.parameters.path.map(p => p.name).join(', ') || 'N/A'}</TableCell>
-                    <TableCell>{endpoint.parameters.query.map(p => p.name).join(', ') || 'N/A'}</TableCell>
+                    <TableCell>{endpoint.parameters.path.map((p:any) => `${p.name}${p.required ? '*' : ''}`).join(', ') || 'N/A'}</TableCell>
+                    <TableCell>{endpoint.parameters.query.map((p:any) => `${p.name}${p.required ? '*' : ''}`).join(', ') || 'N/A'}</TableCell>
                     <TableCell>{endpoint.requestBody ? 'Yes' : 'No'}</TableCell>
                   </TableRow>
                 ))
@@ -236,8 +236,8 @@ const ControllerApiTable = ({ controllers, title }: { controllers: Record<string
                 Endpoint: e.path,
                 Method: e.method.toUpperCase(),
                 Summary: e.summary,
-                'Path Params': e.parameters.path.map((p: any) => p.name).join(', '),
-                'Query Params': e.parameters.query.map((p: any) => p.name).join(', '),
+                'Path Params': e.parameters.path.map((p: any) => `${p.name}${p.required ? '*' : ''}`).join(', '),
+                'Query Params': e.parameters.query.map((p: any) => `${p.name}${p.required ? '*' : ''}`).join(', '),
                 'Header Params': e.parameters.header.map((p: any) => p.name).join(', '),
                 'Required Fields': [...e.parameters.path, ...e.parameters.query, ...e.parameters.header]
                     .filter((p: any) => p.required)
@@ -342,8 +342,8 @@ const ControllerApiTable = ({ controllers, title }: { controllers: Record<string
                                                         <TableCell className="font-mono text-sm">{endpoint.path}</TableCell>
                                                         <TableCell className="max-w-xs truncate">{endpoint.summary || 'N/A'}</TableCell>
                                                         <TableCell><MethodBadge method={endpoint.method}>{endpoint.method.toUpperCase()}</MethodBadge></TableCell>
-                                                        <TableCell>{endpoint.parameters.path.map(p => p.name).join(', ') || 'N/A'}</TableCell>
-                                                        <TableCell>{endpoint.parameters.query.map(p => p.name).join(', ') || 'N/A'}</TableCell>
+                                                        <TableCell>{endpoint.parameters.path.map((p:any) => `${p.name}${p.required ? '*' : ''}`).join(', ') || 'N/A'}</TableCell>
+                                                        <TableCell>{endpoint.parameters.query.map((p:any) => `${p.name}${p.required ? '*' : ''}`).join(', ') || 'N/A'}</TableCell>
                                                         <TableCell>{endpoint.requestBody ? 'Yes' : 'No'}</TableCell>
                                                     </TableRow>
                                                 ))}
