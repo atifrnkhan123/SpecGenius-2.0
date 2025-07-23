@@ -535,7 +535,7 @@ export default function SpectacleApiPage() {
       } finally {
         setIsGenerating(false);
       }
-    }, 1500);
+    }, 10000);
   };
 
   return (
