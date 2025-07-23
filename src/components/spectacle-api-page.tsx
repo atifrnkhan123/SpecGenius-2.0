@@ -157,6 +157,7 @@ const AllEndpointsTable = ({ endpoints, title }: { endpoints: ApiEndpoint[], tit
       </CardHeader>
       <CardContent>
         <ScrollArea className="h-[600px] w-full pr-4">
+        <div className="overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
@@ -193,6 +194,7 @@ const AllEndpointsTable = ({ endpoints, title }: { endpoints: ApiEndpoint[], tit
               )}
             </TableBody>
           </Table>
+          </div>
         </ScrollArea>
       </CardContent>
     </Card>
