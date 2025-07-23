@@ -369,6 +369,7 @@ const ControllerApiTable = ({ controllers, title }: { controllers: Record<string
 
 const InputStep = ({ onProcess }: { onProcess: (content: string, source: 'url' | 'file', error?: string) => void }) => {
   const [url, setUrl] = useState('');
+  const [isFetching, setIsFetching] = useState(false);
   
   const onDrop = useCallback((acceptedFiles: File[]) => {
     if (acceptedFiles.length > 0) {
@@ -388,7 +389,8 @@ const InputStep = ({ onProcess }: { onProcess: (content: string, source: 'url' |
   });
 
   const handleUrlFetch = useCallback(async () => {
-    if (!url) return;
+    if (!url || isFetching) return;
+    setIsFetching(true);
     try {
       const result = await fetchSpecFromUrl(url);
       if (result.error) {
@@ -399,8 +401,10 @@ const InputStep = ({ onProcess }: { onProcess: (content: string, source: 'url' |
     } catch (e: any) {
       console.error("Failed to fetch from URL", e);
       onProcess('', 'url', 'An unexpected error occurred while fetching the URL.');
+    } finally {
+      setIsFetching(false);
     }
-  }, [url, onProcess]);
+  }, [url, onProcess, isFetching]);
 
 
   return (
@@ -420,8 +424,18 @@ const InputStep = ({ onProcess }: { onProcess: (content: string, source: 'url' |
               placeholder="https://petstore.swagger.io/v2/swagger.json"
               value={url}
               onChange={e => setUrl(e.target.value)}
+              disabled={isFetching}
             />
-            <Button onClick={handleUrlFetch} className="w-full bg-accent hover:bg-accent/90">Analyze URL</Button>
+            <Button onClick={handleUrlFetch} className="w-full bg-accent hover:bg-accent/90" disabled={isFetching}>
+              {isFetching ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Analyzing...
+                </>
+              ) : (
+                'Analyze URL'
+              )}
+            </Button>
           </div>
           <div className="mt-4 flex items-start gap-2 p-3 rounded-lg bg-primary/10 text-primary/80">
             <Info className="h-5 w-5 mt-0.5 shrink-0" />
