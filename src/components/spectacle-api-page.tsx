@@ -10,7 +10,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { analyzeSpec } from '@/lib/parser';
 import type { AnalysisResult, ApiEndpoint, Controller, HttpMethod } from '@/lib/types';
@@ -557,7 +556,7 @@ export default function SpectacleApiPage() {
       <main className="flex-grow flex flex-col items-center justify-center p-4 md:p-8 pb-24">
         {state.step === 'input' && (
           <div className='text-center mb-12'>
-            <h1 className="text-4xl md:text-5xl font-bold font-headline tracking-tight">Unlock API Insights Instantly</h1>
+            <h1 className="text-4xl md:text-5xl font-bold font-headline tracking-tight">API Analysis Redefined</h1>
             <p className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto">
               Analyze any Swagger or OpenAPI spec with SpecGenius. Visualize endpoints, understand structures, and accelerate your development workflow.
             </p>
@@ -606,7 +605,7 @@ export default function SpectacleApiPage() {
             </div>
             <SummaryCards summary={state.analysis.summary} controllers={state.analysis.controllers} />
             <Tabs defaultValue="by-controller" className="w-full">
-               <TabsList className="border-b-2 border-transparent">
+               <TabsList className="grid w-full grid-cols-2">
                   <TabsTrigger value="by-controller">By Controller</TabsTrigger>
                   <TabsTrigger value="all-endpoints">All Endpoints</TabsTrigger>
                </TabsList>
@@ -624,3 +623,5 @@ export default function SpectacleApiPage() {
     </div>
   );
 }
+
+    
