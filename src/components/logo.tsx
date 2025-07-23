@@ -14,35 +14,17 @@ const Logo = (props: React.SVGProps<SVGSVGElement>) => (
         <stop offset="100%" style={{ stopColor: 'hsl(var(--accent))', stopOpacity: 1 }} />
       </linearGradient>
     </defs>
-    <g transform="translate(10, 0)">
-      <path
-        d="M25 12 C 10 12, 0 20, 0 25 C 0 30, 10 38, 25 38"
-        strokeWidth="4"
-        stroke="hsl(var(--primary))"
-        fill="none"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M15 25 h -12"
-        strokeWidth="4"
-        stroke="hsl(var(--primary))"
-        fill="none"
-        strokeLinecap="round"
-      />
-      <circle cx="22" cy="15" r="3" fill="hsl(var(--accent))" />
-      <text
-        x="38"
-        y="35"
-        fontFamily="'Space Grotesk', sans-serif"
-        fontSize="30"
-        fontWeight="bold"
-        fill="hsl(var(--primary))"
-      >
-        Spec
-        <tspan fill="url(#geniusGradient)">Genius</tspan>
-      </text>
-    </g>
+    <text
+      x="0"
+      y="35"
+      fontFamily="'Space Grotesk', sans-serif"
+      fontSize="30"
+      fontWeight="bold"
+      fill="hsl(var(--primary))"
+      textAnchor="start"
+    >
+      Spec<tspan fill="url(#geniusGradient)">Genius</tspan>
+    </text>
   </svg>
 );
 
