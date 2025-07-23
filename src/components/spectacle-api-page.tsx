@@ -297,7 +297,7 @@ const ControllerApiTable = ({ controllers, title }: { controllers: Record<string
                 </div>
             </CardHeader>
             <CardContent>
-                <ScrollArea className="h-[600px] w-full pr-4">
+                <div className="h-[600px] w-full pr-4 overflow-y-auto">
                      <div className='space-y-2'>
                         {filteredControllers.length > 0 ? (
                             filteredControllers.map(controller => (
@@ -327,32 +327,34 @@ const ControllerApiTable = ({ controllers, title }: { controllers: Record<string
                                       </div>
                                     </CollapsibleTrigger>
                                     <CollapsibleContent>
-                                        <Table>
-                                            <TableHeader>
-                                                <TableRow>
-                                                    <TableHead className='w-[50px]'>No.</TableHead>
-                                                    <TableHead>Endpoints</TableHead>
-                                                    <TableHead>Endpoints Name</TableHead>
-                                                    <TableHead>Method</TableHead>
-                                                    <TableHead>Path Param</TableHead>
-                                                    <TableHead>Query Param</TableHead>
-                                                    <TableHead>Request Body</TableHead>
-                                                </TableRow>
-                                            </TableHeader>
-                                            <TableBody>
-                                                {controller.endpoints.map((endpoint, index) => (
-                                                    <TableRow key={endpoint.id}>
-                                                        <TableCell>{index + 1}</TableCell>
-                                                        <TableCell className="font-mono text-sm">{endpoint.path}</TableCell>
-                                                        <TableCell className="max-w-xs truncate">{endpoint.summary || 'N/A'}</TableCell>
-                                                        <TableCell><MethodBadge method={endpoint.method}>{endpoint.method.toUpperCase()}</MethodBadge></TableCell>
-                                                        <TableCell>{endpoint.parameters.path.map((p:any) => `${p.name}${p.required ? '*' : ''}`).join(', ') || 'N/A'}</TableCell>
-                                                        <TableCell>{endpoint.parameters.query.map((p:any) => `${p.name}${p.required ? '*' : ''}`).join(', ') || 'N/A'}</TableCell>
-                                                        <TableCell>{endpoint.requestBody ? 'Yes' : 'No'}</TableCell>
+                                        <div className="overflow-x-auto">
+                                            <Table>
+                                                <TableHeader>
+                                                    <TableRow>
+                                                        <TableHead className='w-[50px]'>No.</TableHead>
+                                                        <TableHead>Endpoints</TableHead>
+                                                        <TableHead>Endpoints Name</TableHead>
+                                                        <TableHead>Method</TableHead>
+                                                        <TableHead>Path Param</TableHead>
+                                                        <TableHead>Query Param</TableHead>
+                                                        <TableHead>Request Body</TableHead>
                                                     </TableRow>
-                                                ))}
-                                            </TableBody>
-                                        </Table>
+                                                </TableHeader>
+                                                <TableBody>
+                                                    {controller.endpoints.map((endpoint, index) => (
+                                                        <TableRow key={endpoint.id}>
+                                                            <TableCell>{index + 1}</TableCell>
+                                                            <TableCell className="font-mono text-sm">{endpoint.path}</TableCell>
+                                                            <TableCell className="max-w-xs truncate">{endpoint.summary || 'N/A'}</TableCell>
+                                                            <TableCell><MethodBadge method={endpoint.method}>{endpoint.method.toUpperCase()}</MethodBadge></TableCell>
+                                                            <TableCell>{endpoint.parameters.path.map((p:any) => `${p.name}${p.required ? '*' : ''}`).join(', ') || 'N/A'}</TableCell>
+                                                            <TableCell>{endpoint.parameters.query.map((p:any) => `${p.name}${p.required ? '*' : ''}`).join(', ') || 'N/A'}</TableCell>
+                                                            <TableCell>{endpoint.requestBody ? 'Yes' : 'No'}</TableCell>
+                                                        </TableRow>
+                                                    ))}
+                                                </TableBody>
+                                            </Table>
+                                        </div>
                                     </CollapsibleContent>
                                 </Collapsible>
                             ))
@@ -362,7 +364,7 @@ const ControllerApiTable = ({ controllers, title }: { controllers: Record<string
                             </div>
                         )}
                     </div>
-                </ScrollArea>
+                </div>
             </CardContent>
         </Card>
     );
@@ -605,7 +607,7 @@ export default function SpectacleApiPage() {
             </div>
             <SummaryCards summary={state.analysis.summary} controllers={state.analysis.controllers} />
             <Tabs defaultValue="by-controller" className="w-full">
-              <TabsList className="grid w-full grid-cols-2 md:w-[400px] border">
+              <TabsList className="grid w-full grid-cols-2 md:w-[400px]">
                 <TabsTrigger value="by-controller">By Controller</TabsTrigger>
                 <TabsTrigger value="all-endpoints">All Endpoints</TabsTrigger>
               </TabsList>
