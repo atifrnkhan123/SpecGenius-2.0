@@ -3,7 +3,7 @@ import * as React from 'react';
 const Logo = (props: React.SVGProps<SVGSVGElement>) => (
     <svg
       xmlns="http://www.w3.org/2000/svg"
-      viewBox="-10 0 230 50"
+      viewBox="0 0 200 50"
       width="180"
       height="41.67"
       {...props}
@@ -16,7 +16,7 @@ const Logo = (props: React.SVGProps<SVGSVGElement>) => (
       </defs>
       <g>
         <path
-          d="M40 12 C 25 12, 15 20, 15 25 C 15 30, 25 38, 40 38"
+          d="M35 12 C 20 12, 10 20, 10 25 C 10 30, 20 38, 35 38"
           strokeWidth="4"
           stroke="hsl(var(--primary))"
           fill="none"
@@ -24,16 +24,15 @@ const Logo = (props: React.SVGProps<SVGSVGElement>) => (
           strokeLinejoin="round"
         />
         <path
-          d="M30 25 h -12"
+          d="M25 25 h -12"
           strokeWidth="4"
           stroke="hsl(var(--primary))"
           fill="none"
           strokeLinecap="round"
         />
-        <circle cx="37" cy="15" r="3" fill="hsl(var(--accent))" />
-
+        <circle cx="32" cy="15" r="3" fill="hsl(var(--accent))" />
         <text
-          x="53"
+          x="48"
           y="35"
           fontFamily="'Space Grotesk', sans-serif"
           fontSize="30"
