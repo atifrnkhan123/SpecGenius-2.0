@@ -556,7 +556,7 @@ export default function SpectacleApiPage() {
       <main className="flex-grow flex flex-col items-center justify-center p-4 md:p-8 pb-24">
         {state.step === 'input' && (
           <div className='text-center mb-12'>
-            <h1 className="text-4xl md:text-5xl font-bold font-headline tracking-tight">API Analysis Redefined</h1>
+            <h1 className="text-4xl md:text-5xl font-bold font-headline tracking-tight">SpecGenius API Specification Analyzer</h1>
             <p className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto">
               Analyze any Swagger or OpenAPI spec with SpecGenius. Visualize endpoints, understand structures, and accelerate your development workflow.
             </p>
@@ -605,7 +605,7 @@ export default function SpectacleApiPage() {
             </div>
             <SummaryCards summary={state.analysis.summary} controllers={state.analysis.controllers} />
             <Tabs defaultValue="by-controller" className="w-full">
-               <TabsList className="grid w-full grid-cols-2">
+               <TabsList className="inline-flex h-auto justify-center rounded-lg border bg-background p-1 text-muted-foreground">
                   <TabsTrigger value="by-controller">By Controller</TabsTrigger>
                   <TabsTrigger value="all-endpoints">All Endpoints</TabsTrigger>
                </TabsList>
@@ -623,5 +623,3 @@ export default function SpectacleApiPage() {
     </div>
   );
 }
-
-    
