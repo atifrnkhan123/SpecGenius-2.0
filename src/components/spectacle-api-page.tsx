@@ -219,16 +219,18 @@ const ControllerApiTable = ({ controllers, title }: { controllers: Record<string
     };
 
     const filteredControllers = useMemo(() => {
-        if (!filter) return Object.values(controllers);
+        const lowercasedFilter = filter.toLowerCase();
+        if (!lowercasedFilter) return Object.values(controllers);
+        
         return Object.values(controllers)
-            .map(c => ({
-                ...c,
-                endpoints: c.endpoints.filter(e =>
-                    e.path.toLowerCase().includes(filter.toLowerCase()) ||
-                    (e.summary || '').toLowerCase().includes(filter.toLowerCase())
-                )
-            }))
-            .filter(c => c.endpoints.length > 0 || c.name.toLowerCase().includes(filter.toLowerCase()));
+            .map(c => {
+                const filteredEndpoints = c.endpoints.filter(e =>
+                    e.path.toLowerCase().includes(lowercasedFilter) ||
+                    (e.summary || '').toLowerCase().includes(lowercasedFilter)
+                );
+                return { ...c, endpoints: filteredEndpoints };
+            })
+            .filter(c => c.endpoints.length > 0 || c.name.toLowerCase().includes(lowercasedFilter));
     }, [controllers, filter]);
 
     const exportToCsv = () => {
@@ -261,12 +263,12 @@ const ControllerApiTable = ({ controllers, title }: { controllers: Record<string
     };
 
     useEffect(() => {
-        if (filteredControllers.length > 0) {
+        if (filter) {
             setOpenControllers(new Set(filteredControllers.map(c => c.name)));
         } else {
             setOpenControllers(new Set());
         }
-    }, [filter, controllers]);
+    }, [filter, filteredControllers]);
 
 
     return (
@@ -621,3 +623,5 @@ export default function SpectacleApiPage() {
     </div>
   );
 }
+
+    
