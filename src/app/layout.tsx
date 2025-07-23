@@ -4,7 +4,7 @@ import { Toaster } from "@/components/ui/toaster"
 
 export const metadata: Metadata = {
   title: 'SpecGenius',
-  description: 'Visual API Specification Analyzer for Swagger/OpenAPI',
+  description: 'SpecGenius is an API Specification Analyzer.',
 };
 
 export default function RootLayout({

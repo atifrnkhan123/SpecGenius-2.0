@@ -528,7 +528,7 @@ export default function SpectacleApiPage() {
       <main className="flex-grow flex flex-col items-center justify-center p-4 md:p-8 pb-24">
         {state.step === 'input' && (
           <div className='text-center mb-12'>
-            <h1 className="text-4xl md:text-5xl font-bold font-headline">Visual API Specification Analyzer</h1>
+            <h1 className="text-4xl md:text-5xl font-bold font-headline">SpecGenius is an API Specification Analyzer</h1>
             <p className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto">
               Instantly analyze and understand any Swagger 2.0 or OpenAPI 3.0 specification.
               Get key insights, browse endpoints, and identify backend technologies with AI.
@@ -581,5 +581,3 @@ export default function SpectacleApiPage() {
     </div>
   );
 }
-
-    
